@@ -1,5 +1,7 @@
 defmodule MssqlEcto.Connection do
 
+  alias MssqlEcto.QueryString
+
   @typedoc "The prepared query which is an SQL command"
   @type prepared :: String.t
 
@@ -66,7 +68,21 @@ defmodule MssqlEcto.Connection do
   """
   @spec all(query :: Ecto.Query.t) :: String.t
   def all(query) do
-    raise("not implemented")
+    sources = QueryString.create_names(query)
+    {select_distinct, order_by_distinct} = QueryString.distinct(query.distinct, sources, query)
+
+    from     = QueryString.from(query, sources)
+    select   = QueryString.select(query, select_distinct, sources)
+    join     = QueryString.join(query, sources)
+    where    = QueryString.where(query, sources)
+    group_by = QueryString.group_by(query, sources)
+    having   = QueryString.having(query, sources)
+    order_by = QueryString.order_by(query, order_by_distinct, sources)
+    limit    = QueryString.limit(query, sources)
+    offset   = QueryString.offset(query, sources)
+    lock     = QueryString.lock(query.lock)
+
+    IO.iodata_to_binary([select, from, join, where, group_by, having, order_by, limit, offset | lock])
   end
 
   @doc """

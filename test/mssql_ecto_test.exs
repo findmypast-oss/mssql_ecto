@@ -4,7 +4,7 @@ defmodule MssqlEctoTest do
   import Ecto.Query
 
   alias Ecto.Queryable
-  alias Ecto.Adapters.Postgres.Connection, as: SQL
+  alias MssqlEcto.Connection, as: SQL
 
   defmodule Schema do
     use Ecto.Schema
@@ -15,10 +15,10 @@ defmodule MssqlEctoTest do
       field :z, :integer
       field :w, {:array, :integer}
 
-      has_many :comments, Ecto.Adapters.PostgresTest.Schema2,
+      has_many :comments, MssqlEctoTest.Schema2,
         references: :x,
         foreign_key: :z
-      has_one :permalink, Ecto.Adapters.PostgresTest.Schema3,
+      has_one :permalink, MssqlEctoTest.Schema3,
         references: :y,
         foreign_key: :id
     end
@@ -28,7 +28,7 @@ defmodule MssqlEctoTest do
     use Ecto.Schema
 
     schema "schema2" do
-      belongs_to :post, Ecto.Adapters.PostgresTest.Schema,
+      belongs_to :post, MssqlEctoTest.Schema,
         references: :x,
         foreign_key: :z
     end
@@ -45,12 +45,10 @@ defmodule MssqlEctoTest do
   end
 
   defp normalize(query, operation \\ :all, counter \\ 0) do
-    {query, _params, _key} = Ecto.Query.Planner.prepare(query, operation, Ecto.Adapters.Postgres, counter)
-    Ecto.Query.Planner.normalize(query, operation, Ecto.Adapters.Postgres, counter)
+    {query, _params, _key} = Ecto.Query.Planner.prepare(query, operation, MssqlEcto, counter)
+    Ecto.Query.Planner.normalize(query, operation, MssqlEcto, counter)
   end
 
-
-  @tag :skip
   test "from" do
     query = Schema |> select([r], r.x) |> normalize
     assert SQL.all(query) == ~s{SELECT s0."x" FROM "schema" AS s0}
