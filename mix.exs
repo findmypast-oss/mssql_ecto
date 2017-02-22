@@ -28,6 +28,7 @@ defmodule MssqlEcto.Mixfile do
   #
   # Type "mix help deps" for more examples and options
   defp deps do
-    []
+    [{:mssqlex, "~> 0.0.1"},
+     {:ecto, "~> 2.1"}]
   end
 end

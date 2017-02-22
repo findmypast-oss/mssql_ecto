@@ -1,18 +1,7 @@
 defmodule MssqlEcto do
   @moduledoc """
-  Documentation for MssqlEcto.
   """
 
-  @doc """
-  Hello world.
+  use Ecto.Adapters.SQL, :mssqlex
 
-  ## Examples
-
-      iex> MssqlEcto.hello
-      :world
-
-  """
-  def hello do
-    :world
-  end
 end
