@@ -3,5 +3,6 @@ defmodule MssqlEcto do
   """
 
   use Ecto.Adapters.SQL, :mssqlex
+  use MssqlEcto.Storage
 
 end

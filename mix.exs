@@ -7,28 +7,33 @@ defmodule MssqlEcto.Mixfile do
      elixir: "~> 1.4",
      build_embedded: Mix.env == :prod,
      start_permanent: Mix.env == :prod,
-     deps: deps()]
+     deps: deps(),
+     aliases: ["test.all": &test_all/1,
+          "test.integration": &test_integration/1],
+     test_paths: test_paths(Mix.env())]
   end
 
-  # Configuration for the OTP application
-  #
-  # Type "mix help compile.app" for more information
   def application do
-    # Specify extra applications you'll use from Erlang/Elixir
     [extra_applications: [:logger]]
   end
 
-  # Dependencies can be Hex packages:
-  #
-  #   {:my_dep, "~> 0.3.0"}
-  #
-  # Or git/path repositories:
-  #
-  #   {:my_dep, git: "https://github.com/elixir-lang/my_dep.git", tag: "0.1.0"}
-  #
-  # Type "mix help deps" for more examples and options
   defp deps do
-    [{:mssqlex, "~> 0.0.1"},
+    [{:mssqlex, "~> 0.0.2"},
      {:ecto, "~> 2.1"}]
+  end
+
+  defp test_paths(:integration), do: ["integration/mssql"]
+  defp test_paths(_), do: ["test"]
+
+  defp test_integration(args) do
+    args = if IO.ANSI.enabled?, do: ["--color" | args], else: ["--no-color" | args]
+    System.cmd "mix", ["test" | args], into: IO.binstream(:stdio, :line),
+                                       env: [{"MIX_ENV", "integration"}]
+  end
+
+  defp test_all(args) do
+    Mix.Task.run "test", args
+    {_, res} = test_integration(args)
+    if res != 0, do: exit {:shutdown, 1}
   end
 end
