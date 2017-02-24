@@ -18,7 +18,7 @@ defmodule MssqlEcto.Mixfile do
   end
 
   defp deps do
-    [{:mssqlex, "~> 0.0.3"},
+    [{:mssqlex, "~> 0.0.4"},
      {:ecto, "~> 2.1"}]
   end
 

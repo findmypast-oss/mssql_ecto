@@ -65,14 +65,18 @@ defmodule MssqlEcto.Helpers do
   end
 
   def ecto_to_db({:array, t}),     do: [ecto_to_db(t), ?[, ?]]
-  def ecto_to_db(:id),             do: "integer"
-  def ecto_to_db(:binary_id),      do: "uuid"
-  def ecto_to_db(:string),         do: "varchar"
-  def ecto_to_db(:binary),         do: "bytea"
-  def ecto_to_db(:map),            do: Application.fetch_env!(:ecto, :postgres_map_type)
-  def ecto_to_db({:map, _}),       do: Application.fetch_env!(:ecto, :postgres_map_type)
-  def ecto_to_db(:utc_datetime),   do: "timestamp"
-  def ecto_to_db(:naive_datetime), do: "timestamp"
+  def ecto_to_db(:id),             do: "int"
+  def ecto_to_db(:serial),         do: "int identity(1,1)"
+  def ecto_to_db(:binary_id),      do: "uniqueidentifier"
+  def ecto_to_db(:uuid),           do: "uniqueidentifier"
+  def ecto_to_db(:string),         do: "nvarchar"
+  def ecto_to_db(:binary),         do: "varbinary"
+  def ecto_to_db(:integer),        do: "int"
+  def ecto_to_db(:boolean),        do: "bit"
+  def ecto_to_db(:map),            do: "nvarchar(max)"
+  def ecto_to_db({:map, _}),       do: "nvarchar(max)"
+  def ecto_to_db(:utc_datetime),   do: "datetime2"
+  def ecto_to_db(:naive_datetime), do: "datetime2"
   def ecto_to_db(other),           do: Atom.to_string(other)
 
   def error!(nil, message) do

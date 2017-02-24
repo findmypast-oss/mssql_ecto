@@ -146,6 +146,8 @@ defmodule MssqlEcto.Connection do
 
   alias Ecto.Migration.{Table, Index, Reference, Constraint}
 
+  @drops [:drop, :drop_if_exists]
+
   @doc """
   Receives a DDL command and returns a query that executes it.
   """
@@ -157,16 +159,79 @@ defmodule MssqlEcto.Connection do
              column_definitions(table, columns), pk_definition(columns, ", "), ?),
              options_expr(table.options)]
 
-    [query] ++
-      comments_on(:table, table.name, table.comment) ++
-      comments_for_columns(table, columns)
-    |> IO.iodata_to_binary
-    |> IO.inspect
+    [query]
   end
 
-  def execute_ddl(command) do
-    raise("not implemented")
+  def execute_ddl({command, %Table{} = table}) when command in @drops do
+    [["DROP TABLE ", if_do(command == :drop_if_exists, "IF EXISTS "),
+      quote_table(table.prefix, table.name)]]
   end
+
+  def execute_ddl({:alter, %Table{} = table, changes}) do
+    query = ["ALTER TABLE ", quote_table(table.prefix, table.name), ?\s,
+             column_changes(table, changes), pk_definition(changes, ", ADD ")]
+
+    [query]
+  end
+
+  def execute_ddl({:create, %Index{} = index}) do
+    fields = intersperse_map(index.columns, ", ", &index_expr/1)
+
+    queries = [["CREATE ",
+                if_do(index.unique, "UNIQUE "),
+                "INDEX ",
+                if_do(index.concurrently, "CONCURRENTLY "),
+                quote_name(index.name),
+                " ON ",
+                quote_table(index.prefix, index.table),
+                if_do(index.using, [" USING " , to_string(index.using)]),
+                ?\s, ?(, fields, ?),
+                if_do(index.where, [" WHERE ", to_string(index.where)])]]
+
+    queries
+  end
+
+  def execute_ddl({:create_if_not_exists, %Index{} = index}) do
+    [["DO $$ BEGIN ",
+      execute_ddl({:create, index}), ";",
+      "EXCEPTION WHEN duplicate_table THEN END; $$;"]]
+  end
+
+  def execute_ddl({command, %Index{} = index}) when command in @drops do
+    if_exists = if command == :drop_if_exists, do: "IF EXISTS ", else: []
+
+    [["DROP INDEX ",
+      if_do(index.concurrently, "CONCURRENTLY "),
+      if_exists,
+      quote_table(index.prefix, index.name)]]
+  end
+
+  def execute_ddl({:rename, %Table{} = current_table, %Table{} = new_table}) do
+    [["ALTER TABLE ", quote_table(current_table.prefix, current_table.name),
+      " RENAME TO ", quote_table(nil, new_table.name)]]
+  end
+
+  def execute_ddl({:rename, %Table{} = table, current_column, new_column}) do
+    [["ALTER TABLE ", quote_table(table.prefix, table.name), " RENAME ",
+      quote_name(current_column), " TO ", quote_name(new_column)]]
+  end
+
+  def execute_ddl({:create, %Constraint{} = constraint}) do
+    queries = [["ALTER TABLE ", quote_table(constraint.prefix, constraint.table),
+                " ADD ", new_constraint_expr(constraint)]]
+
+    queries
+  end
+
+  def execute_ddl({:drop, %Constraint{} = constraint}) do
+    [["ALTER TABLE ", quote_table(constraint.prefix, constraint.table),
+      " DROP CONSTRAINT ", quote_name(constraint.name)]]
+  end
+
+  def execute_ddl(string) when is_binary(string), do: [string]
+
+  def execute_ddl(keyword) when is_list(keyword),
+    do: error!(nil, "MSSQL adapter does not support keyword lists in execute")
 
   defp pk_definition(columns, prefix) do
     pks =
@@ -178,32 +243,6 @@ defmodule MssqlEcto.Connection do
       [] -> []
       _  -> [prefix, "PRIMARY KEY (", intersperse_map(pks, ", ", &quote_name/1), ")"]
     end
-  end
-
-  defp comments_on(_database_object, _name, nil), do: []
-  defp comments_on(:column, {table_name, column_name}, comment) do
-    column_name = quote_table(table_name, column_name)
-    [["COMMENT ON COLUMN ", column_name, " IS ", single_quote(comment)]]
-  end
-  defp comments_on(:table, name, comment) do
-    [["COMMENT ON TABLE ", quote_name(name), " IS ", single_quote(comment)]]
-  end
-  defp comments_on(:index, name, comment) do
-    [["COMMENT ON INDEX ", quote_name(name), " IS ", single_quote(comment)]]
-  end
-
-  defp comments_on(:constraint, _name, nil, _table_name), do:  []
-  defp comments_on(:constraint, name, comment, table_name) do
-    [["COMMENT ON CONSTRAINT ", quote_name(name), " ON ", quote_name(table_name),
-      " IS ", single_quote(comment)]]
-  end
-
-  defp comments_for_columns(table, columns) do
-    Enum.flat_map(columns, fn
-      {_operation, column_name, _column_type, opts} ->
-        comments_on(:column, {table.name, column_name}, opts[:comment])
-      _ -> []
-    end)
   end
 
   defp column_definitions(table, columns) do

@@ -715,24 +715,22 @@ defmodule MssqlEctoTest do
     assert execute_ddl(create) == ["""
     CREATE TABLE "posts" ("name" varchar(20) DEFAULT 'Untitled' NOT NULL,
     "price" numeric(8,2) DEFAULT expr,
-    "on_hand" integer DEFAULT 0 NULL,
+    "on_hand" int DEFAULT 0 NULL,
     "published_at" time without time zone NULL,
-    "is_active" boolean DEFAULT true)
+    "is_active" bit DEFAULT 1)
     """ |> remove_newlines]
   end
 
-  @tag :skip
   test "create table with prefix" do
     create = {:create, table(:posts, prefix: :foo),
               [{:add, :category_0, references(:categories), []}]}
 
     assert execute_ddl(create) == ["""
     CREATE TABLE "foo"."posts"
-    ("category_0" integer CONSTRAINT "posts_category_0_fkey" REFERENCES "foo"."categories"("id"))
+    ("category_0" int CONSTRAINT "posts_category_0_fkey" REFERENCES "foo"."categories"("id"))
     """ |> remove_newlines]
   end
 
-  @tag :skip
   test "create table with comment on columns and table" do
     create = {:create, table(:posts, comment: "comment"),
               [
@@ -742,25 +740,19 @@ defmodule MssqlEctoTest do
               ]}
     assert execute_ddl(create) == [remove_newlines("""
     CREATE TABLE "posts"
-    ("category_0" integer CONSTRAINT "posts_category_0_fkey" REFERENCES "categories"("id"), "created_at" timestamp, "updated_at" timestamp)
-    """),
-    ~s|COMMENT ON TABLE "posts" IS 'comment'|,
-    ~s|COMMENT ON COLUMN "posts"."category_0" IS 'column comment'|,
-    ~s|COMMENT ON COLUMN "posts"."updated_at" IS 'column comment 2'|]
+    ("category_0" int CONSTRAINT "posts_category_0_fkey" REFERENCES "categories"("id"), "created_at" datetime2, "updated_at" datetime2)
+    """)]
   end
 
-  @tag :skip
   test "create table with comment on table" do
     create = {:create, table(:posts, comment: "table comment"),
               [{:add, :category_0, references(:categories), []}]}
     assert execute_ddl(create) == [remove_newlines("""
     CREATE TABLE "posts"
-    ("category_0" integer CONSTRAINT "posts_category_0_fkey" REFERENCES "categories"("id"))
-    """),
-    ~s|COMMENT ON TABLE "posts" IS 'table comment'|]
+    ("category_0" int CONSTRAINT "posts_category_0_fkey" REFERENCES "categories"("id"))
+    """)]
   end
 
-  @tag :skip
   test "create table with comment on columns" do
     create = {:create, table(:posts),
               [
@@ -770,13 +762,10 @@ defmodule MssqlEctoTest do
               ]}
     assert execute_ddl(create) == [remove_newlines("""
     CREATE TABLE "posts"
-    ("category_0" integer CONSTRAINT "posts_category_0_fkey" REFERENCES "categories"("id"), "created_at" timestamp, "updated_at" timestamp)
-    """),
-    ~s|COMMENT ON COLUMN "posts"."category_0" IS 'column comment'|,
-    ~s|COMMENT ON COLUMN "posts"."updated_at" IS 'column comment 2'|]
+    ("category_0" int CONSTRAINT "posts_category_0_fkey" REFERENCES "categories"("id"), "created_at" datetime2, "updated_at" datetime2)
+    """)]
   end
 
-  @tag :skip
   test "create table with references" do
     create = {:create, table(:posts),
               [{:add, :id, :serial, [primary_key: true]},
@@ -791,21 +780,20 @@ defmodule MssqlEctoTest do
                {:add, :category_8, references(:categories, on_delete: :nilify_all, on_update: :update_all), [null: false]}]}
 
     assert execute_ddl(create) == ["""
-    CREATE TABLE "posts" ("id" serial,
-    "category_0" integer CONSTRAINT "posts_category_0_fkey" REFERENCES "categories"("id"),
-    "category_1" integer CONSTRAINT "foo_bar" REFERENCES "categories"("id"),
-    "category_2" integer CONSTRAINT "posts_category_2_fkey" REFERENCES "categories"("id"),
-    "category_3" integer NOT NULL CONSTRAINT "posts_category_3_fkey" REFERENCES "categories"("id") ON DELETE CASCADE,
-    "category_4" integer CONSTRAINT "posts_category_4_fkey" REFERENCES "categories"("id") ON DELETE SET NULL,
-    "category_5" integer CONSTRAINT "posts_category_5_fkey" REFERENCES "categories"("id"),
-    "category_6" integer NOT NULL CONSTRAINT "posts_category_6_fkey" REFERENCES "categories"("id") ON UPDATE CASCADE,
-    "category_7" integer CONSTRAINT "posts_category_7_fkey" REFERENCES "categories"("id") ON UPDATE SET NULL,
-    "category_8" integer NOT NULL CONSTRAINT "posts_category_8_fkey" REFERENCES "categories"("id") ON DELETE SET NULL ON UPDATE CASCADE,
+    CREATE TABLE "posts" ("id" int identity(1,1),
+    "category_0" int CONSTRAINT "posts_category_0_fkey" REFERENCES "categories"("id"),
+    "category_1" int CONSTRAINT "foo_bar" REFERENCES "categories"("id"),
+    "category_2" int CONSTRAINT "posts_category_2_fkey" REFERENCES "categories"("id"),
+    "category_3" int NOT NULL CONSTRAINT "posts_category_3_fkey" REFERENCES "categories"("id") ON DELETE CASCADE,
+    "category_4" int CONSTRAINT "posts_category_4_fkey" REFERENCES "categories"("id") ON DELETE SET NULL,
+    "category_5" int CONSTRAINT "posts_category_5_fkey" REFERENCES "categories"("id"),
+    "category_6" int NOT NULL CONSTRAINT "posts_category_6_fkey" REFERENCES "categories"("id") ON UPDATE CASCADE,
+    "category_7" int CONSTRAINT "posts_category_7_fkey" REFERENCES "categories"("id") ON UPDATE SET NULL,
+    "category_8" int NOT NULL CONSTRAINT "posts_category_8_fkey" REFERENCES "categories"("id") ON DELETE SET NULL ON UPDATE CASCADE,
     PRIMARY KEY ("id"))
     """ |> remove_newlines]
   end
 
-  @tag :skip
   test "create table with options" do
     create = {:create, table(:posts, [options: "WITH FOO=BAR"]),
               [{:add, :id, :serial, [primary_key: true]},
@@ -814,7 +802,6 @@ defmodule MssqlEctoTest do
       [~s|CREATE TABLE "posts" ("id" serial, "created_at" timestamp, PRIMARY KEY ("id")) WITH FOO=BAR|]
   end
 
-  @tag :skip
   test "create table with composite key" do
     create = {:create, table(:posts),
               [{:add, :a, :integer, [primary_key: true]},
@@ -826,19 +813,16 @@ defmodule MssqlEctoTest do
     """ |> remove_newlines]
   end
 
-  @tag :skip
   test "drop table" do
     drop = {:drop, table(:posts)}
     assert execute_ddl(drop) == [~s|DROP TABLE "posts"|]
   end
 
-  @tag :skip
   test "drop table with prefix" do
     drop = {:drop, table(:posts, prefix: :foo)}
     assert execute_ddl(drop) == [~s|DROP TABLE "foo"."posts"|]
   end
 
-  @tag :skip
   test "alter table" do
     alter = {:alter, table(:posts),
              [{:add, :title, :string, [default: "Untitled", size: 100, null: false]},
@@ -850,21 +834,20 @@ defmodule MssqlEctoTest do
 
     assert execute_ddl(alter) == ["""
     ALTER TABLE "posts"
-    ADD COLUMN "title" varchar(100) DEFAULT 'Untitled' NOT NULL,
-    ADD COLUMN "author_id" integer CONSTRAINT "posts_author_id_fkey" REFERENCES "author"("id"),
+    ADD COLUMN "title" nvarchar(100) DEFAULT 'Untitled' NOT NULL,
+    ADD COLUMN "author_id" int CONSTRAINT "posts_author_id_fkey" REFERENCES "author"("id"),
     ALTER COLUMN "price" TYPE numeric(8,2),
     ALTER COLUMN "price" DROP NOT NULL,
-    ALTER COLUMN "cost" TYPE integer,
+    ALTER COLUMN "cost" TYPE int,
     ALTER COLUMN "cost" SET NOT NULL,
     ALTER COLUMN "cost" SET DEFAULT NULL,
-    ALTER COLUMN "permalink_id" TYPE integer,
+    ALTER COLUMN "permalink_id" TYPE int,
     ADD CONSTRAINT "posts_permalink_id_fkey" FOREIGN KEY ("permalink_id") REFERENCES "permalinks"("id"),
     ALTER COLUMN "permalink_id" SET NOT NULL,
     DROP COLUMN "summary"
     """ |> remove_newlines]
   end
 
-  @tag :skip
   test "alter table with comments on table and columns" do
     alter = {:alter, table(:posts, comment: "table comment"),
              [{:add, :title, :string, [default: "Untitled", size: 100, null: false, comment: "column comment"]},
@@ -881,14 +864,10 @@ defmodule MssqlEctoTest do
     ADD CONSTRAINT "posts_permalink_id_fkey" FOREIGN KEY ("permalink_id") REFERENCES "permalinks"("id"),
     ALTER COLUMN "permalink_id" SET NOT NULL,
     DROP COLUMN "summary"
-    """),
-    ~s|COMMENT ON TABLE \"posts\" IS 'table comment'|,
-    ~s|COMMENT ON COLUMN \"posts\".\"title\" IS 'column comment'|,
-    ~s|COMMENT ON COLUMN \"posts\".\"permalink_id\" IS 'column comment'|]
+    """)]
 
   end
 
-  @tag :skip
   test "alter table with prefix" do
     alter = {:alter, table(:posts, prefix: :foo),
              [{:add, :author_id, references(:author, prefix: :foo), []},
@@ -903,7 +882,6 @@ defmodule MssqlEctoTest do
     """ |> remove_newlines]
   end
 
-  @tag :skip
   test "alter table with primary key" do
     alter = {:alter, table(:posts),
              [{:add, :my_pk, :serial, [primary_key: true]}]}
@@ -926,7 +904,6 @@ defmodule MssqlEctoTest do
       [~s|CREATE INDEX "posts$main" ON "posts" (lower(permalink))|]
   end
 
-  @tag :skip
   test "create index with prefix" do
     create = {:create, index(:posts, [:category_id, :permalink], prefix: :foo)}
     assert execute_ddl(create) ==
@@ -937,23 +914,19 @@ defmodule MssqlEctoTest do
       [~s|CREATE INDEX "posts$main" ON "foo"."posts" (lower(permalink))|]
   end
 
-  @tag :skip
   test "create index with comment" do
     create = {:create, index(:posts, [:category_id, :permalink], prefix: :foo, comment: "comment")}
     assert execute_ddl(create) == [remove_newlines("""
     CREATE INDEX "posts_category_id_permalink_index" ON "foo"."posts" ("category_id", "permalink")
-    """),
-    ~s|COMMENT ON INDEX "posts_category_id_permalink_index" IS 'comment'|]
+    """)]
   end
 
-  @tag :skip
   test "create unique index" do
     create = {:create, index(:posts, [:permalink], unique: true)}
     assert execute_ddl(create) ==
       [~s|CREATE UNIQUE INDEX "posts_permalink_index" ON "posts" ("permalink")|]
   end
 
-  @tag :skip
   test "create unique index with condition" do
     create = {:create, index(:posts, [:permalink], unique: true, where: "public IS TRUE")}
     assert execute_ddl(create) ==
@@ -985,13 +958,11 @@ defmodule MssqlEctoTest do
       [~s|CREATE INDEX "posts_permalink_index" ON "posts" USING hash ("permalink")|]
   end
 
-  @tag :skip
   test "drop index" do
     drop = {:drop, index(:posts, [:id], name: "posts$main")}
     assert execute_ddl(drop) == [~s|DROP INDEX "posts$main"|]
   end
 
-  @tag :skip
   test "drop index with prefix" do
     drop = {:drop, index(:posts, [:id], name: "posts$main", prefix: :foo)}
     assert execute_ddl(drop) == [~s|DROP INDEX "foo"."posts$main"|]
@@ -1003,7 +974,6 @@ defmodule MssqlEctoTest do
     assert execute_ddl(drop) == [~s|DROP INDEX CONCURRENTLY "posts$main"|]
   end
 
-  @tag :skip
   test "create check constraint" do
     create = {:create, constraint(:products, "price_must_be_positive", check: "price > 0")}
     assert execute_ddl(create) ==
@@ -1021,16 +991,13 @@ defmodule MssqlEctoTest do
       [~s|ALTER TABLE "products" ADD CONSTRAINT "price_must_be_positive" EXCLUDE USING gist (int4range("from", "to", '[]') WITH &&)|]
   end
 
-  @tag :skip
   test "create constraint with comment" do
     create = {:create, constraint(:products, "price_must_be_positive", check: "price > 0", prefix: "foo", comment: "comment")}
     assert execute_ddl(create) == [remove_newlines("""
     ALTER TABLE "foo"."products" ADD CONSTRAINT "price_must_be_positive" CHECK (price > 0)
-    """),
-    ~s|COMMENT ON CONSTRAINT "price_must_be_positive" ON "products" IS 'comment'|]
+    """)]
   end
 
-  @tag :skip
   test "drop constraint" do
     drop = {:drop, constraint(:products, "price_must_be_positive")}
     assert execute_ddl(drop) ==
@@ -1041,28 +1008,24 @@ defmodule MssqlEctoTest do
       [~s|ALTER TABLE "foo"."products" DROP CONSTRAINT "price_must_be_positive"|]
   end
 
-  @tag :skip
   test "rename table" do
     rename = {:rename, table(:posts), table(:new_posts)}
-    assert execute_ddl(rename) == [~s|ALTER TABLE "posts" RENAME TO "new_posts"|]
+    assert execute_ddl(rename) == [~s|EXEC sp_rename 'posts', 'new_posts', 'TABLE'|]
   end
 
-  @tag :skip
   test "rename table with prefix" do
     rename = {:rename, table(:posts, prefix: :foo), table(:new_posts, prefix: :foo)}
-    assert execute_ddl(rename) == [~s|ALTER TABLE "foo"."posts" RENAME TO "new_posts"|]
+    assert execute_ddl(rename) == [~s|EXEC sp_rename 'foo.posts', 'new_posts', 'TABLE'|]
   end
 
-  @tag :skip
   test "rename column" do
     rename = {:rename, table(:posts), :given_name, :first_name}
-    assert execute_ddl(rename) == [~s|ALTER TABLE "posts" RENAME "given_name" TO "first_name"|]
+    assert execute_ddl(rename) == [~s|EXEC sp_rename 'posts.given_name', 'first_name', 'COLUMN'|]
   end
 
-  @tag :skip
   test "rename column in prefixed table" do
     rename = {:rename, table(:posts, prefix: :foo), :given_name, :first_name}
-    assert execute_ddl(rename) == [~s|ALTER TABLE "foo"."posts" RENAME "given_name" TO "first_name"|]
+    assert execute_ddl(rename) == [~s|EXEC sp_rename 'foo.posts.given_name', 'first_name', 'COLUMN"|]
   end
 
   defp remove_newlines(string) do
