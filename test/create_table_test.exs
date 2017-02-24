@@ -32,41 +32,6 @@ defmodule MssqlEcto.CreateTableTest do
     """ |> remove_newlines]
   end
 
-  test "create table with comment on columns and table" do
-    create = {:create, table(:posts, comment: "comment"),
-              [
-                {:add, :category_0, references(:categories), [comment: "column comment"]},
-                {:add, :created_at, :timestamp, []},
-                {:add, :updated_at, :timestamp, [comment: "column comment 2"]}
-              ]}
-    assert execute_ddl(create) == [remove_newlines("""
-    CREATE TABLE "posts"
-    ("category_0" int CONSTRAINT "posts_category_0_fkey" REFERENCES "categories"("id"), "created_at" datetime2, "updated_at" datetime2)
-    """)]
-  end
-
-  test "create table with comment on table" do
-    create = {:create, table(:posts, comment: "table comment"),
-              [{:add, :category_0, references(:categories), []}]}
-    assert execute_ddl(create) == [remove_newlines("""
-    CREATE TABLE "posts"
-    ("category_0" int CONSTRAINT "posts_category_0_fkey" REFERENCES "categories"("id"))
-    """)]
-  end
-
-  test "create table with comment on columns" do
-    create = {:create, table(:posts),
-              [
-                {:add, :category_0, references(:categories), [comment: "column comment"]},
-                {:add, :created_at, :timestamp, []},
-                {:add, :updated_at, :timestamp, [comment: "column comment 2"]}
-              ]}
-    assert execute_ddl(create) == [remove_newlines("""
-    CREATE TABLE "posts"
-    ("category_0" int CONSTRAINT "posts_category_0_fkey" REFERENCES "categories"("id"), "created_at" datetime2, "updated_at" datetime2)
-    """)]
-  end
-
   test "create table with references" do
     create = {:create, table(:posts),
               [{:add, :id, :serial, [primary_key: true]},

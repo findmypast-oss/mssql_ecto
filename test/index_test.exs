@@ -49,27 +49,6 @@ defmodule MssqlEcto.IndexTest do
       [~s|CREATE UNIQUE INDEX "posts_permalink_index" ON "posts" ("permalink") WHERE public|]
   end
 
-  @tag skip: "not supported"
-  test "create index concurrently" do
-    create = {:create, index(:posts, [:permalink], concurrently: true)}
-    assert execute_ddl(create) ==
-      [~s|CREATE INDEX CONCURRENTLY "posts_permalink_index" ON "posts" ("permalink")|]
-  end
-
-  @tag skip: "not supported"
-  test "create unique index concurrently" do
-    create = {:create, index(:posts, [:permalink], concurrently: true, unique: true)}
-    assert execute_ddl(create) ==
-      [~s|CREATE UNIQUE INDEX CONCURRENTLY "posts_permalink_index" ON "posts" ("permalink")|]
-  end
-
-  @tag skip: "not supported"
-  test "create an index using a different type" do
-    create = {:create, index(:posts, [:permalink], using: :hash)}
-    assert execute_ddl(create) ==
-      [~s|CREATE INDEX "posts_permalink_index" ON "posts" USING hash ("permalink")|]
-  end
-
   test "drop index" do
     drop = {:drop, index(:posts, [:id], name: "posts$main")}
     assert execute_ddl(drop) == [~s|DROP INDEX "posts$main"|]
@@ -78,12 +57,6 @@ defmodule MssqlEcto.IndexTest do
   test "drop index with prefix" do
     drop = {:drop, index(:posts, [:id], name: "posts$main", prefix: :foo)}
     assert execute_ddl(drop) == [~s|DROP INDEX "foo"."posts$main"|]
-  end
-
-  @tag skip: "not supported"
-  test "drop index concurrently" do
-    drop = {:drop, index(:posts, [:id], name: "posts$main", concurrently: true)}
-    assert execute_ddl(drop) == [~s|DROP INDEX CONCURRENTLY "posts$main"|]
   end
 
   defp execute_ddl(command) do

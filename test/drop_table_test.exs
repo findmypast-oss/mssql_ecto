@@ -1,6 +1,5 @@
 defmodule MssqlEcto.DropTableTest do
   use ExUnit.Case, async: true
-  @moduletag skip: "pending implementation"
 
   import Ecto.Migration, only: [table: 1, table: 2]
 

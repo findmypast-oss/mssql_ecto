@@ -1,6 +1,5 @@
 defmodule MssqlEcto.MigrationTest do
   use ExUnit.Case, async: true
-  @moduletag skip: "pending implementation"
 
   import Ecto.Migration, only: [table: 1, table: 2]
 
@@ -27,7 +26,7 @@ defmodule MssqlEcto.MigrationTest do
 
   test "rename column in prefixed table" do
     rename = {:rename, table(:posts, prefix: :foo), :given_name, :first_name}
-    assert execute_ddl(rename) == [~s|EXEC sp_rename 'foo.posts.given_name', 'first_name', 'COLUMN"|]
+    assert execute_ddl(rename) == [~s|EXEC sp_rename 'foo.posts.given_name', 'first_name', 'COLUMN'|]
   end
 
   defp execute_ddl(command) do

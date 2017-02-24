@@ -181,11 +181,9 @@ defmodule MssqlEcto.Connection do
     queries = [["CREATE ",
                 if_do(index.unique, "UNIQUE "),
                 "INDEX ",
-                if_do(index.concurrently, "CONCURRENTLY "),
                 quote_name(index.name),
                 " ON ",
                 quote_table(index.prefix, index.table),
-                if_do(index.using, [" USING " , to_string(index.using)]),
                 ?\s, ?(, fields, ?),
                 if_do(index.where, [" WHERE ", to_string(index.where)])]]
 
@@ -202,19 +200,18 @@ defmodule MssqlEcto.Connection do
     if_exists = if command == :drop_if_exists, do: "IF EXISTS ", else: []
 
     [["DROP INDEX ",
-      if_do(index.concurrently, "CONCURRENTLY "),
       if_exists,
       quote_table(index.prefix, index.name)]]
   end
 
   def execute_ddl({:rename, %Table{} = current_table, %Table{} = new_table}) do
-    [["EXEC sp_rename ", quote_table(current_table.prefix, current_table.name),
-      ", ", quote_table(nil, new_table.name), "TABLE"]]
+    [["EXEC sp_rename ", quote_name([current_table.prefix, current_table.name], ?'),
+      ", ", quote_name(new_table.name, ?'), ", 'TABLE'"]]
   end
 
   def execute_ddl({:rename, %Table{} = table, current_column, new_column}) do
-    [["EXEC sp_rename ", quote_table(table.prefix, table.name), ".",
-      quote_name(current_column), ", ", quote_name(new_column)]]
+    [["EXEC sp_rename ", quote_name([table.prefix, table.name, current_column], ?'),
+      ", ", quote_name(new_column, ?'), ", 'COLUMN'"]]
   end
 
   def execute_ddl({:create, %Constraint{} = constraint}) do
@@ -312,9 +309,6 @@ defmodule MssqlEcto.Connection do
 
   defp new_constraint_expr(%Constraint{check: check} = constraint) when is_binary(check) do
     ["CONSTRAINT ", quote_name(constraint.name), " CHECK (", check, ")"]
-  end
-  defp new_constraint_expr(%Constraint{exclude: exclude} = constraint) when is_binary(exclude) do
-    ["CONSTRAINT ", quote_name(constraint.name), " EXCLUDE USING ", exclude]
   end
 
   defp default_expr({:ok, nil}, _type),

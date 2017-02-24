@@ -12,9 +12,11 @@ defmodule MssqlEcto.Helpers do
     [source, ?. | quote_name(name)]
   end
 
-  def quote_name(names, quoter \\ ?")
+  def quote_name(name, quoter \\ ?")
+  def quote_name(nil, _), do: []
   def quote_name(names, quoter) when is_list(names) do
     names
+    |> Enum.filter(&(not is_nil(&1)))
     |> intersperse_map(?., &(quote_name(&1, nil)))
     |> wrap_in(quoter)
   end
@@ -36,9 +38,9 @@ defmodule MssqlEcto.Helpers do
     [wrapper, value, wrapper]
   end
 
-  def quote_table(prefix, name, quoter \\ ?")
-  def quote_table(nil, name, quoter),    do: quote_name(name, quoter)
-  def quote_table(prefix, name, quoter), do: quote_name([prefix, name], quoter)
+  def quote_table(prefix, name)
+  def quote_table(nil, name),    do: quote_name(name)
+  def quote_table(prefix, name), do: intersperse_map([prefix, name], ?., &quote_name/1)
 
   def single_quote(value), do: value |> escape_string |> wrap_in(?')
 

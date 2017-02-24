@@ -1,6 +1,5 @@
 defmodule MssqlEcto.ConstraintTest do
   use ExUnit.Case, async: true
-  @moduletag skip: "pending implementation"
 
   import Ecto.Migration, only: [constraint: 2, constraint: 3]
 
@@ -14,12 +13,6 @@ defmodule MssqlEcto.ConstraintTest do
     create = {:create, constraint(:products, "price_must_be_positive", check: "price > 0", prefix: "foo")}
     assert execute_ddl(create) ==
       [~s|ALTER TABLE "foo"."products" ADD CONSTRAINT "price_must_be_positive" CHECK (price > 0)|]
-  end
-
-  test "create exclusion constraint" do
-    create = {:create, constraint(:products, "price_must_be_positive", exclude: ~s|gist (int4range("from", "to", '[]') WITH &&)|)}
-    assert execute_ddl(create) ==
-      [~s|ALTER TABLE "products" ADD CONSTRAINT "price_must_be_positive" EXCLUDE USING gist (int4range("from", "to", '[]') WITH &&)|]
   end
 
   test "create constraint with comment" do

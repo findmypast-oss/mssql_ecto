@@ -1,6 +1,5 @@
 defmodule MssqlEcto.AlterTableTest do
   use ExUnit.Case, async: true
-  @moduletag skip: "pending implementation"
 
   import Ecto.Migration, only: [table: 1, table: 2, references: 1, references: 2]
 
@@ -31,26 +30,6 @@ defmodule MssqlEcto.AlterTableTest do
     """ |> remove_newlines]
   end
 
-  test "alter table with comments on table and columns" do
-    alter = {:alter, table(:posts, comment: "table comment"),
-             [{:add, :title, :string, [default: "Untitled", size: 100, null: false, comment: "column comment"]},
-              {:modify, :price, :numeric, [precision: 8, scale: 2, null: true]},
-              {:modify, :permalink_id, references(:permalinks), [null: false, comment: "column comment"]},
-              {:remove, :summary}]}
-
-    assert execute_ddl(alter) == [remove_newlines("""
-    ALTER TABLE "posts"
-    ADD COLUMN "title" varchar(100) DEFAULT 'Untitled' NOT NULL,
-    ALTER COLUMN "price" TYPE numeric(8,2),
-    ALTER COLUMN "price" DROP NOT NULL,
-    ALTER COLUMN "permalink_id" TYPE integer,
-    ADD CONSTRAINT "posts_permalink_id_fkey" FOREIGN KEY ("permalink_id") REFERENCES "permalinks"("id"),
-    ALTER COLUMN "permalink_id" SET NOT NULL,
-    DROP COLUMN "summary"
-    """)]
-
-  end
-
   test "alter table with prefix" do
     alter = {:alter, table(:posts, prefix: :foo),
              [{:add, :author_id, references(:author, prefix: :foo), []},
@@ -58,8 +37,8 @@ defmodule MssqlEcto.AlterTableTest do
 
     assert execute_ddl(alter) == ["""
     ALTER TABLE "foo"."posts"
-    ADD COLUMN "author_id" integer CONSTRAINT "posts_author_id_fkey" REFERENCES "foo"."author"("id"),
-    ALTER COLUMN \"permalink_id\" TYPE integer,
+    ADD COLUMN "author_id" int CONSTRAINT "posts_author_id_fkey" REFERENCES "foo"."author"("id"),
+    ALTER COLUMN \"permalink_id\" TYPE int,
     ADD CONSTRAINT "posts_permalink_id_fkey" FOREIGN KEY ("permalink_id") REFERENCES "foo"."permalinks"("id"),
     ALTER COLUMN "permalink_id" SET NOT NULL
     """ |> remove_newlines]
@@ -71,7 +50,7 @@ defmodule MssqlEcto.AlterTableTest do
 
     assert execute_ddl(alter) == ["""
     ALTER TABLE "posts"
-    ADD COLUMN "my_pk" serial,
+    ADD COLUMN "my_pk" int identity(1,1),
     ADD PRIMARY KEY ("my_pk")
     """ |> remove_newlines]
   end
