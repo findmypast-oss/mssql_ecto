@@ -4,6 +4,7 @@ defmodule MssqlEcto.Connection do
   alias Mssqlex.Query
 
   import MssqlEcto.Helpers
+  import MssqlEcto.TypeConversion, only: [encode: 2, decode: 2]
 
   @typedoc "The prepared query which is an SQL command"
   @type prepared :: String.t
@@ -207,13 +208,13 @@ defmodule MssqlEcto.Connection do
   end
 
   def execute_ddl({:rename, %Table{} = current_table, %Table{} = new_table}) do
-    [["ALTER TABLE ", quote_table(current_table.prefix, current_table.name),
-      " RENAME TO ", quote_table(nil, new_table.name)]]
+    [["EXEC sp_rename ", quote_table(current_table.prefix, current_table.name),
+      ", ", quote_table(nil, new_table.name), "TABLE"]]
   end
 
   def execute_ddl({:rename, %Table{} = table, current_column, new_column}) do
-    [["ALTER TABLE ", quote_table(table.prefix, table.name), " RENAME ",
-      quote_name(current_column), " TO ", quote_name(new_column)]]
+    [["EXEC sp_rename ", quote_table(table.prefix, table.name), ".",
+      quote_name(current_column), ", ", quote_name(new_column)]]
   end
 
   def execute_ddl({:create, %Constraint{} = constraint}) do
@@ -322,8 +323,10 @@ defmodule MssqlEcto.Connection do
     do: [" DEFAULT ARRAY[]::", ecto_to_db(type)]
   defp default_expr({:ok, literal}, _type) when is_binary(literal),
     do: [" DEFAULT '", escape_string(literal), ?']
-  defp default_expr({:ok, literal}, _type) when is_number(literal) or is_boolean(literal),
+  defp default_expr({:ok, literal}, _type) when is_number(literal),
     do: [" DEFAULT ", to_string(literal)]
+  defp default_expr({:ok, literal}, _type) when is_boolean(literal),
+    do: [" DEFAULT ", to_string(encode(literal, :boolean))]
   defp default_expr({:ok, {:fragment, expr}}, _type),
     do: [" DEFAULT ", expr]
   defp default_expr({:ok, expr}, type),
@@ -377,7 +380,7 @@ defmodule MssqlEcto.Connection do
   defp reference_name(%Reference{name: name}, _table, _column),
     do: quote_name(name)
 
-  defp reference_column_type(:serial, _opts), do: "integer"
+  defp reference_column_type(:serial, _opts), do: "int"
   defp reference_column_type(type, opts), do: column_type(type, opts)
 
   defp reference_on_delete(:nilify_all), do: " ON DELETE SET NULL"

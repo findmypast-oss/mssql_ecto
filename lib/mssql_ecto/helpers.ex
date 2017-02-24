@@ -12,29 +12,35 @@ defmodule MssqlEcto.Helpers do
     [source, ?. | quote_name(name)]
   end
 
-  def quote_name(name) when is_atom(name) do
-    quote_name(Atom.to_string(name))
+  def quote_name(names, quoter \\ ?")
+  def quote_name(names, quoter) when is_list(names) do
+    names
+    |> intersperse_map(?., &(quote_name(&1, nil)))
+    |> wrap_in(quoter)
   end
-  def quote_name(name) do
+  def quote_name(name, quoter) when is_atom(name) do
+    quote_name(Atom.to_string(name), quoter)
+  end
+  def quote_name(name, quoter) do
     if String.contains?(name, "\"") do
-      error!(nil, "bad field name #{inspect name}")
+      error!(nil, "bad name #{inspect name}")
     end
-    [?", name, ?"]
+    wrap_in(name, quoter)
   end
 
-  def quote_table(nil, name),    do: quote_table(name)
-  def quote_table(prefix, name), do: [quote_table(prefix), ?., quote_table(name)]
-
-  def quote_table(name) when is_atom(name),
-    do: quote_table(Atom.to_string(name))
-  def quote_table(name) do
-    if String.contains?(name, "\"") do
-      error!(nil, "bad table name #{inspect name}")
-    end
-    [?", name, ?"]
+  def wrap_in(value, nil), do: value
+  def wrap_in(value, {left_wrapper, right_wrapper}) do
+    [left_wrapper, value, right_wrapper]
+  end
+  def wrap_in(value, wrapper) do
+    [wrapper, value, wrapper]
   end
 
-  def single_quote(value), do: [?', escape_string(value), ?']
+  def quote_table(prefix, name, quoter \\ ?")
+  def quote_table(nil, name, quoter),    do: quote_name(name, quoter)
+  def quote_table(prefix, name, quoter), do: quote_name([prefix, name], quoter)
+
+  def single_quote(value), do: value |> escape_string |> wrap_in(?')
 
   def intersperse_map(list, separator, mapper, acc \\ [])
   def intersperse_map([], _separator, _mapper, acc),
@@ -77,6 +83,7 @@ defmodule MssqlEcto.Helpers do
   def ecto_to_db({:map, _}),       do: "nvarchar(max)"
   def ecto_to_db(:utc_datetime),   do: "datetime2"
   def ecto_to_db(:naive_datetime), do: "datetime2"
+  def ecto_to_db(:timestamp),      do: "datetime2"
   def ecto_to_db(other),           do: Atom.to_string(other)
 
   def error!(nil, message) do
