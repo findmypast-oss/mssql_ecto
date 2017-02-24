@@ -8,10 +8,10 @@ defmodule MssqlEcto.InsertTest do
   
   test "insert" do
     query = SQL.insert(nil, "schema", [:x, :y], [[:x, :y]], {:raise, [], []}, [:id])
-    assert query == ~s{INSERT INTO "schema" ("x","y") VALUES ($1,$2) RETURNING "id"}
+    assert query == ~s{INSERT INTO "schema" ("x","y") VALUES (?,?) RETURNING "id"}
 
     query = SQL.insert(nil, "schema", [:x, :y], [[:x, :y], [nil, :z]], {:raise, [], []}, [:id])
-    assert query == ~s{INSERT INTO "schema" ("x","y") VALUES ($1,$2),(DEFAULT,$3) RETURNING "id"}
+    assert query == ~s{INSERT INTO "schema" ("x","y") VALUES (?,?),(DEFAULT,?) RETURNING "id"}
 
     query = SQL.insert(nil, "schema", [], [[]], {:raise, [], []}, [:id])
     assert query == ~s{INSERT INTO "schema" VALUES (DEFAULT) RETURNING "id"}
@@ -23,6 +23,7 @@ defmodule MssqlEcto.InsertTest do
     assert query == ~s{INSERT INTO "prefix"."schema" VALUES (DEFAULT)}
   end
 
+  @tag skip: "Not yet implemented. Should consider MERGE for upserts"
   test "insert with on conflict" do
     query = SQL.insert(nil, "schema", [:x, :y], [[:x, :y]], {:nothing, [], []}, [])
     assert query == ~s{INSERT INTO "schema" ("x","y") VALUES ($1,$2) ON CONFLICT DO NOTHING}

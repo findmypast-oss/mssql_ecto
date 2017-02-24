@@ -69,9 +69,7 @@ defmodule MssqlEcto.Connection do
   from any constraint.
   """
   @spec to_constraints(exception :: Exception.t) :: Keyword.t
-  def to_constraints(exception) do
-    raise("not implemented")
-  end
+  def to_constraints(%Mssqlex.Error{}), do: []
 
   ## Queries
 
@@ -120,9 +118,31 @@ defmodule MssqlEcto.Connection do
   @spec insert(prefix ::String.t, table :: String.t,
                    header :: [atom], rows :: [[atom | nil]],
                    on_conflict :: Ecto.Adapter.on_conflict, returning :: [atom]) :: String.t
-  def insert(prefix, table, header, rows, on_conflict, returning) do
-    raise("not implemented")
+  def insert(prefix, table, header, rows, on_conflict, []) do
+    fields = intersperse_map(header, ?,, &quote_name/1)
+    IO.iodata_to_binary(["INSERT INTO ", quote_table(prefix, table), " (",
+                          fields, ") VALUES ", insert_all(rows) |
+                          on_conflict(on_conflict, header)])
   end
+  def insert(_prefix, _table, _header, _rows, _on_conflict, _returning) do
+    error!(nil, "RETURNING is not supported in insert/insert_all by MySQL")
+  end
+
+  defp on_conflict({:raise, _, []}, _header) do
+    []
+  end
+  defp on_conflict(_, _header) do
+    error!(nil, ":on_conflict options other than :raise are not yet supported")
+  end
+
+  defp insert_all(rows) do
+    intersperse_map(rows, ?,, fn row ->
+      [?(, intersperse_map(row, ?,, &insert_all_value/1), ?)]
+    end)
+  end
+
+  defp insert_all_value(nil), do: "DEFAULT"
+  defp insert_all_value(_),   do: '?'
 
   @doc """
   Returns an UPDATE for the given `fields` in `table` filtered by
@@ -320,7 +340,7 @@ defmodule MssqlEcto.Connection do
   defp default_expr({:ok, literal}, _type) when is_number(literal),
     do: [" DEFAULT ", to_string(literal)]
   defp default_expr({:ok, literal}, _type) when is_boolean(literal),
-    do: [" DEFAULT ", to_string(encode(literal, :boolean))]
+    do: [" DEFAULT ", to_string(elem(encode(literal, :boolean), 1))]
   defp default_expr({:ok, {:fragment, expr}}, _type),
     do: [" DEFAULT ", expr]
   defp default_expr({:ok, expr}, type),

@@ -17,3 +17,9 @@ Documentation can be generated with [ExDoc](https://github.com/elixir-lang/ex_do
 and published on [HexDocs](https://hexdocs.pm). Once published, the docs can
 be found at [https://hexdocs.pm/mssql_ecto](https://hexdocs.pm/mssql_ecto).
 
+## Features not yet implemented
+
+* Table comments
+* Column comments
+* On conflict
+* Constraint checking
