@@ -4,7 +4,6 @@ defmodule MssqlEcto.Connection do
   alias Mssqlex.Query
 
   import MssqlEcto.Helpers
-  import MssqlEcto.Type, only: [encode: 2, decode: 2]
 
   @typedoc "The prepared query which is an SQL command"
   @type prepared :: String.t
@@ -342,7 +341,7 @@ defmodule MssqlEcto.Connection do
   defp default_expr({:ok, literal}, _type) when is_number(literal),
     do: [" DEFAULT ", to_string(literal)]
   defp default_expr({:ok, literal}, _type) when is_boolean(literal),
-    do: [" DEFAULT ", to_string(elem(encode(literal, :boolean), 1))]
+    do: [" DEFAULT ", to_string(if literal, do: 1, else: 0)]
   defp default_expr({:ok, {:fragment, expr}}, _type),
     do: [" DEFAULT ", expr]
   defp default_expr({:ok, expr}, type),
