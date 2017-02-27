@@ -4,7 +4,7 @@ defmodule MssqlEcto.Connection do
   alias Mssqlex.Query
 
   import MssqlEcto.Helpers
-  import MssqlEcto.TypeConversion, only: [encode: 2, decode: 2]
+  import MssqlEcto.Type, only: [encode: 2, decode: 2]
 
   @typedoc "The prepared query which is an SQL command"
   @type prepared :: String.t
@@ -25,7 +25,7 @@ defmodule MssqlEcto.Connection do
   Prepares and executes the given query with `DBConnection`.
   """
   @spec prepare_execute(connection :: DBConnection.t, name :: String.t, prepared, params :: [term], options :: Keyword.t) ::
-            {:ok, query :: map, term} | {:error, Exception.t}
+  {:ok, query :: map, term} | {:error, Exception.t}
   def prepare_execute(conn, name, prepared_query, params, options) do
     case DBConnection.prepare_execute(conn, %Query{name: name, statement: prepared_query}, params, options) do
       {:ok, query, result} -> {:ok, query, result}
@@ -42,6 +42,8 @@ defmodule MssqlEcto.Connection do
   @spec execute(connection :: DBConnection.t, prepared_query :: cached, params :: [term], options :: Keyword.t) ::
             {:ok, term} | {:error | :reset, Exception.t}
   def execute(conn, prepared_query, params, options) do
+    IO.inspect prepared_query
+    IO.inspect params
     case DBConnection.prepare_execute(conn, %Query{name: "", statement: prepared_query}, params, options) do
       {:ok, _query, result} -> {:ok, result}
       {:error, %Mssqlex.Error{}} = error -> error
