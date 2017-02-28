@@ -89,11 +89,10 @@ defmodule MssqlEcto.Connection do
     group_by = QueryString.group_by(query, sources)
     having   = QueryString.having(query, sources)
     order_by = QueryString.order_by(query, order_by_distinct, sources)
-    limit    = QueryString.limit(query, sources)
     offset   = QueryString.offset(query, sources)
     lock     = QueryString.lock(query.lock)
 
-    IO.iodata_to_binary([select, from, join, where, group_by, having, order_by, limit, offset | lock])
+    IO.iodata_to_binary([select, from, join, where, group_by, having, order_by, offset | lock])
   end
 
   @doc """
@@ -335,7 +334,7 @@ defmodule MssqlEcto.Connection do
   defp default_expr({:ok, nil}, _type),
     do: " DEFAULT NULL"
   defp default_expr({:ok, []}, type),
-    do: [" DEFAULT ARRAY[]::", ecto_to_db(type)]
+    do: error!(nil, "arrays not supported")
   defp default_expr({:ok, literal}, _type) when is_binary(literal),
     do: [" DEFAULT '", escape_string(literal), ?']
   defp default_expr({:ok, literal}, _type) when is_number(literal),

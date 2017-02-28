@@ -31,7 +31,7 @@ defmodule MssqlEcto.Type do
   def wrap(value, :date), do: {:ok, {:sql_type_date, [value]}}
   def wrap(value, :time), do: {:ok, {:sql_type_time, [value]}}
   def wrap(value, type) when is_datetime(type), do: {:ok, {{:sql_wvarchar, 27}, [value]}}
-  def wrap(value, type), do: {:ok, {type, value}}
+  def wrap(value, type), do: {:ok, {type, [value]}}
 
   def unwrap({_, value}, _), do: {:ok, value}
 end

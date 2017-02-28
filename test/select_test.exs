@@ -119,6 +119,7 @@ defmodule MssqlEcto.SelectTest do
     assert SQL.all(query) == ~s{SELECT DISTINCT ON (s0."x") s0."x" FROM "schema" AS s0 ORDER BY s0."x" DESC, s0."y"}
   end
 
+  @tag :only
   test "where" do
     query = Schema |> where([r], r.x == 42) |> where([r], r.y != 43) |> select([r], r.x) |> normalize
     assert SQL.all(query) == ~s{SELECT s0."x" FROM "schema" AS s0 WHERE (s0."x" = 42) AND (s0."y" != 43)}
@@ -241,7 +242,7 @@ defmodule MssqlEcto.SelectTest do
     assert SQL.all(query) == ~s{SELECT CAST(? AS uniqueidentifier) FROM "schema" AS s0}
 
     query = Schema |> select([], type(^1, Custom.Permalink)) |> normalize
-    assert SQL.all(query) == ~s{SELECT CAST(? as int) FROM "schema" AS s0}
+    assert SQL.all(query) == ~s{SELECT CAST(? AS int) FROM "schema" AS s0}
   end
 
   test "nested expressions" do
@@ -338,7 +339,7 @@ defmodule MssqlEcto.SelectTest do
       "SELECT s0.\"id\", ? FROM \"schema\" AS s0 INNER JOIN \"schema2\" AS s1 ON ? " <>
       "INNER JOIN \"schema2\" AS s2 ON ? WHERE (?) AND (?) " <>
       "GROUP BY ?, ? HAVING (?) AND (?) " <>
-      "ORDER BY ?, s0.\"x\" LIMIT ? OFFSET ?"
+      "ORDER BY ?, s0.\"x\" OFFSET ? FETCH NEXT ? ROWS ONLY"
 
     assert SQL.all(query) == String.trim(result)
   end

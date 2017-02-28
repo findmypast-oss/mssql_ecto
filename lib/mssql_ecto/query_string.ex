@@ -145,12 +145,13 @@ defmodule MssqlEcto.QueryString do
     end
   end
 
-  def limit(%Query{limit: nil}, _sources), do: []
-  def limit(%Query{limit: %QueryExpr{expr: expr}} = query, sources) do
-    [" LIMIT " | expr(expr, sources, query)]
+  def offset(%Query{offset: nil, limit: nil}, _sources), do: []
+  def offset(%Query{offset: nil, limit: %QueryExpr{expr: expr}} = query, sources) do
+    [" OFFSET 0 FETCH NEXT ", expr(expr, sources, query), " ROWS ONLY"]
   end
-
-  def offset(%Query{offset: nil}, _sources), do: []
+  def offset(%Query{offset: %QueryExpr{expr: offset_expr}, limit: %QueryExpr{expr: limit_expr}} = query, sources) do
+    [" OFFSET ", expr(offset_expr, sources, query), " FETCH NEXT ", expr(limit_expr, sources, query), " ROWS ONLY"]
+  end
   def offset(%Query{offset: %QueryExpr{expr: expr}} = query, sources) do
     [" OFFSET " | expr(expr, sources, query)]
   end
@@ -176,8 +177,12 @@ defmodule MssqlEcto.QueryString do
     [?(, expr(expr, sources, query), ?)]
   end
 
+  def expr({_type, [literal]}, sources, query) do
+    expr(literal, sources, query)
+  end
+
   def expr({:^, [], [ix]}, _sources, _query) do
-    [?$ | Integer.to_string(ix + 1)]
+    [??]
   end
 
   def expr({{:., _, [{:&, _, [idx]}, field]}, _, []}, sources, _query) when is_atom(field) do
@@ -205,7 +210,7 @@ defmodule MssqlEcto.QueryString do
   end
 
   def expr({:in, _, [left, {:^, _, [ix, _]}]}, sources, query) do
-    [expr(left, sources, query), " = ANY($", Integer.to_string(ix + 1), ?)]
+    [expr(left, sources, query), " = ANY(?)"]
   end
 
   def expr({:in, _, [left, right]}, sources, query) do
@@ -236,13 +241,13 @@ defmodule MssqlEcto.QueryString do
   end
 
   def expr({:datetime_add, _, [datetime, count, interval]}, sources, query) do
-    [?(, expr(datetime, sources, query), "::timestamp + ",
-     interval(count, interval, sources, query) | ")::timestamp"]
+    [?(, expr(datetime, sources, query), " + ",
+     interval(count, interval, sources, query) | ")"]
   end
 
   def expr({:date_add, _, [date, count, interval]}, sources, query) do
-    [?(, expr(date, sources, query), "::date + ",
-     interval(count, interval, sources, query) | ")::date"]
+    [?(, expr(date, sources, query), " + ",
+     interval(count, interval, sources, query) | ")"]
   end
 
   def expr({fun, _, args}, sources, query) when is_atom(fun) and is_list(args) do
@@ -271,11 +276,11 @@ defmodule MssqlEcto.QueryString do
 
   def expr(%Ecto.Query.Tagged{value: binary, type: :binary}, _sources, _query)
       when is_binary(binary) do
-    ["'\\x", Base.encode16(binary, case: :lower) | "'::bytea"]
+    ["0x", Base.encode16(binary, case: :lower)]
   end
 
   def expr(%Ecto.Query.Tagged{value: other, type: type}, sources, query) do
-    [expr(other, sources, query), ?:, ?: | Helpers.ecto_to_db(type)]
+    ["CAST(", expr(other, sources, query), " AS ", Helpers.ecto_to_db(type), ")"]
   end
 
   def expr(nil, _sources, _query),   do: "NULL"
@@ -291,7 +296,7 @@ defmodule MssqlEcto.QueryString do
   end
 
   def expr(literal, _sources, _query) when is_float(literal) do
-    [Float.to_string(literal) | "::float"]
+    Float.to_string(literal)
   end
 
   def interval(count, interval, _sources, _query) when is_integer(count) do
@@ -304,7 +309,7 @@ defmodule MssqlEcto.QueryString do
   end
 
   def interval(count, interval, sources, query) do
-    [?(, expr(count, sources, query), "::numeric * ",
+    [?(, expr(count, sources, query), " * ",
      interval(1, interval, sources, query), ?)]
   end
 
