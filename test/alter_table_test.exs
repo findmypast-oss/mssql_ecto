@@ -16,14 +16,15 @@ defmodule MssqlEcto.AlterTableTest do
 
     assert execute_ddl(alter) == ["""
     ALTER TABLE "posts"
-    ADD COLUMN "title" nvarchar(100) DEFAULT 'Untitled' NOT NULL,
-    ADD COLUMN "author_id" int CONSTRAINT "posts_author_id_fkey" REFERENCES "author"("id"),
-    ALTER COLUMN "price" TYPE numeric(8,2),
+    ADD
+    "title" nvarchar(100) DEFAULT 'Untitled' NOT NULL,
+    "author_id" bigint CONSTRAINT "posts_author_id_fkey" REFERENCES "author"("id"),
+    ALTER COLUMN "price" numeric(8,2),
     ALTER COLUMN "price" DROP NOT NULL,
-    ALTER COLUMN "cost" TYPE int,
+    ALTER COLUMN "cost" bigint,
     ALTER COLUMN "cost" SET NOT NULL,
     ALTER COLUMN "cost" SET DEFAULT NULL,
-    ALTER COLUMN "permalink_id" TYPE int,
+    ALTER COLUMN "permalink_id" bigint,
     ADD CONSTRAINT "posts_permalink_id_fkey" FOREIGN KEY ("permalink_id") REFERENCES "permalinks"("id"),
     ALTER COLUMN "permalink_id" SET NOT NULL,
     DROP COLUMN "summary"
@@ -37,8 +38,8 @@ defmodule MssqlEcto.AlterTableTest do
 
     assert execute_ddl(alter) == ["""
     ALTER TABLE "foo"."posts"
-    ADD COLUMN "author_id" int CONSTRAINT "posts_author_id_fkey" REFERENCES "foo"."author"("id"),
-    ALTER COLUMN \"permalink_id\" TYPE int,
+    ADD "author_id" bigint CONSTRAINT "posts_author_id_fkey" REFERENCES "foo"."author"("id"),
+    ALTER COLUMN \"permalink_id\" bigint,
     ADD CONSTRAINT "posts_permalink_id_fkey" FOREIGN KEY ("permalink_id") REFERENCES "foo"."permalinks"("id"),
     ALTER COLUMN "permalink_id" SET NOT NULL
     """ |> remove_newlines]
@@ -50,7 +51,7 @@ defmodule MssqlEcto.AlterTableTest do
 
     assert execute_ddl(alter) == ["""
     ALTER TABLE "posts"
-    ADD COLUMN "my_pk" int identity(1,1),
+    ADD "my_pk" bigint identity(1,1),
     ADD PRIMARY KEY ("my_pk")
     """ |> remove_newlines]
   end

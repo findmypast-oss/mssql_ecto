@@ -40,14 +40,22 @@ defmodule MssqlEcto.Connection do
             {:ok, term} | {:error, Exception.t}
   @spec execute(connection :: DBConnection.t, prepared_query :: cached, params :: [term], options :: Keyword.t) ::
             {:ok, term} | {:error | :reset, Exception.t}
-  def execute(conn, prepared_query, params, options) do
-    IO.inspect prepared_query
-    IO.inspect params
-    case DBConnection.prepare_execute(conn, %Query{name: "", statement: prepared_query}, params, options) do
-      {:ok, _query, result} -> {:ok, result}
+  def execute(conn, %Query{} = query, params, options) do
+    case DBConnection.prepare_execute(conn, query, params, options) do
+      {:ok, _query, result} -> {:ok, process_rows(result, options)}
       {:error, %Mssqlex.Error{}} = error -> error
       {:error, error} -> raise error
     end
+  end
+  def execute(conn, statement, params, options) do
+    execute(conn, %Query{name: "", statement: statement}, params, options)
+  end
+
+  defp process_rows(result, options) do
+    decoder = options[:decode_mapper] || fn x -> x end
+    Map.update!(result, :rows, fn row ->
+      unless is_nil(row), do: Enum.map(row, decoder)
+    end)
   end
 
   @doc """
@@ -118,14 +126,21 @@ defmodule MssqlEcto.Connection do
   @spec insert(prefix ::String.t, table :: String.t,
                    header :: [atom], rows :: [[atom | nil]],
                    on_conflict :: Ecto.Adapter.on_conflict, returning :: [atom]) :: String.t
-  def insert(prefix, table, header, rows, on_conflict, []) do
-    fields = intersperse_map(header, ?,, &quote_name/1)
-    IO.iodata_to_binary(["INSERT INTO ", quote_table(prefix, table), " (",
-                          fields, ") VALUES ", insert_all(rows) |
-                          on_conflict(on_conflict, header)])
-  end
-  def insert(_prefix, _table, _header, _rows, _on_conflict, _returning) do
-    error!(nil, "RETURNING is not supported in insert/insert_all by MySQL")
+  def insert(prefix, table, header, rows, on_conflict, returning) do
+    included_fields = header
+    |> Enum.filter(fn value -> Enum.any?(rows, fn row -> value in row end) end)
+    included_rows = Enum.map(rows, fn row ->
+      row
+      |> Enum.zip(header)
+      |> Enum.filter_map(
+          fn {_row, col} -> col in included_fields end,
+          fn {row, _col} -> row end)
+    end)
+    fields = intersperse_map(included_fields, ?,, &quote_name/1)
+    IO.iodata_to_binary(["INSERT INTO ", quote_table(prefix, table), 
+                         " (", fields, ") ", returning(returning), " VALUES ",
+                         insert_all(included_rows), on_conflict(on_conflict,
+                         included_fields)])
   end
 
   defp on_conflict({:raise, _, []}, _header) do
@@ -143,6 +158,16 @@ defmodule MssqlEcto.Connection do
 
   defp insert_all_value(nil), do: "DEFAULT"
   defp insert_all_value(_),   do: '?'
+
+  defp returning(%Ecto.Query{select: nil}, _sources),
+    do: []
+  defp returning(%Ecto.Query{select: %{fields: fields}} = query, sources),
+    do: "OUTPUT " <> select_fields(fields, sources, query)
+
+  defp returning([]),
+    do: []
+  defp returning(returning),
+    do: "OUTPUT " <> Enum.map_join(returning, ", ", fn column -> ["INSERTED." | quote_name(column)] end)
 
   @doc """
   Returns an UPDATE for the given `fields` in `table` filtered by
@@ -277,26 +302,31 @@ defmodule MssqlEcto.Connection do
   end
 
   defp column_changes(table, columns) do
-    intersperse_map(columns, ", ", &column_change(table, &1))
+    {additions, changes} = Enum.split_with(columns,
+      fn val -> elem(val, 0) == :add end)
+    [if_do(additions !== [], ["ADD ", intersperse_map(additions, ", ", &column_change(table, &1))]),
+     if_do(changes !== [], intersperse_map(changes, ", ", &column_change(table, &1)))]
+    |> Enum.filter(fn x -> x !== [] end)
+    |> Enum.intersperse(", ")
   end
 
   defp column_change(table, {:add, name, %Reference{} = ref, opts}) do
-    ["ADD COLUMN ", quote_name(name), ?\s, reference_column_type(ref.type, opts),
+    [quote_name(name), ?\s, reference_column_type(ref.type, opts),
      column_options(ref.type, opts), reference_expr(ref, table, name)]
   end
 
   defp column_change(_table, {:add, name, type, opts}) do
-    ["ADD COLUMN ", quote_name(name), ?\s, column_type(type, opts),
+    [quote_name(name), ?\s, column_type(type, opts),
      column_options(type, opts)]
   end
 
   defp column_change(table, {:modify, name, %Reference{} = ref, opts}) do
-    ["ALTER COLUMN ", quote_name(name), " TYPE ", reference_column_type(ref.type, opts),
+    ["ALTER COLUMN ", quote_name(name), ?\s , reference_column_type(ref.type, opts),
      constraint_expr(ref, table, name), modify_null(name, opts), modify_default(name, ref.type, opts)]
   end
 
   defp column_change(_table, {:modify, name, type, opts}) do
-    ["ALTER COLUMN ", quote_name(name), " TYPE ",
+    ["ALTER COLUMN ", quote_name(name), ?\s,
      column_type(type, opts), modify_null(name, opts), modify_default(name, type, opts)]
   end
 
@@ -333,7 +363,7 @@ defmodule MssqlEcto.Connection do
 
   defp default_expr({:ok, nil}, _type),
     do: " DEFAULT NULL"
-  defp default_expr({:ok, []}, type),
+  defp default_expr({:ok, []}, _type),
     do: error!(nil, "arrays not supported")
   defp default_expr({:ok, literal}, _type) when is_binary(literal),
     do: [" DEFAULT '", escape_string(literal), ?']
@@ -394,7 +424,7 @@ defmodule MssqlEcto.Connection do
   defp reference_name(%Reference{name: name}, _table, _column),
     do: quote_name(name)
 
-  defp reference_column_type(:serial, _opts), do: "int"
+  defp reference_column_type(:serial, _opts), do: "bigint"
   defp reference_column_type(type, opts), do: column_type(type, opts)
 
   defp reference_on_delete(:nilify_all), do: " ON DELETE SET NULL"
