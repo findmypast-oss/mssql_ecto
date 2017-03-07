@@ -14,11 +14,11 @@ defmodule MssqlEcto.CreateTableTest do
                {:add, :is_active, :boolean, [default: true]}]}
 
     assert execute_ddl(create) == ["""
-    CREATE TABLE "posts" ("name" nvarchar(20) DEFAULT 'Untitled' NOT NULL,
-    "price" numeric(8,2) DEFAULT expr,
-    "on_hand" bigint DEFAULT 0 NULL,
+    CREATE TABLE "posts" ("name" nvarchar(20) CONSTRAINT "posts_name_default" DEFAULT 'Untitled' NOT NULL,
+    "price" numeric(8,2) CONSTRAINT "posts_price_default" DEFAULT expr,
+    "on_hand" int CONSTRAINT "posts_on_hand_default" DEFAULT 0 NULL,
     "published_at" time without time zone NULL,
-    "is_active" bit DEFAULT 1)
+    "is_active" bit CONSTRAINT "posts_is_active_default" DEFAULT 1)
     """ |> remove_newlines]
   end
 
@@ -28,7 +28,7 @@ defmodule MssqlEcto.CreateTableTest do
 
     assert execute_ddl(create) == ["""
     CREATE TABLE "foo"."posts"
-    ("category_0" bigint CONSTRAINT "posts_category_0_fkey" REFERENCES "foo"."categories"("id"))
+    ("category_0" int CONSTRAINT "posts_category_0_fkey" REFERENCES "foo"."categories"("id"))
     """ |> remove_newlines]
   end
 
@@ -46,17 +46,17 @@ defmodule MssqlEcto.CreateTableTest do
                {:add, :category_8, references(:categories, on_delete: :nilify_all, on_update: :update_all), [null: false]}]}
 
     assert execute_ddl(create) == ["""
-    CREATE TABLE "posts" ("id" bigint identity(1,1),
-    "category_0" bigint CONSTRAINT "posts_category_0_fkey" REFERENCES "categories"("id"),
-    "category_1" bigint CONSTRAINT "foo_bar" REFERENCES "categories"("id"),
-    "category_2" bigint CONSTRAINT "posts_category_2_fkey" REFERENCES "categories"("id"),
-    "category_3" bigint NOT NULL CONSTRAINT "posts_category_3_fkey" REFERENCES "categories"("id") ON DELETE CASCADE,
-    "category_4" bigint CONSTRAINT "posts_category_4_fkey" REFERENCES "categories"("id") ON DELETE SET NULL,
-    "category_5" bigint CONSTRAINT "posts_category_5_fkey" REFERENCES "categories"("id"),
-    "category_6" bigint NOT NULL CONSTRAINT "posts_category_6_fkey" REFERENCES "categories"("id") ON UPDATE CASCADE,
-    "category_7" bigint CONSTRAINT "posts_category_7_fkey" REFERENCES "categories"("id") ON UPDATE SET NULL,
-    "category_8" bigint NOT NULL CONSTRAINT "posts_category_8_fkey" REFERENCES "categories"("id") ON DELETE SET NULL ON UPDATE CASCADE,
-    PRIMARY KEY ("id"))
+    CREATE TABLE "posts" ("id" int identity(1,1),
+    "category_0" int CONSTRAINT "posts_category_0_fkey" REFERENCES "categories"("id"),
+    "category_1" int CONSTRAINT "foo_bar" REFERENCES "categories"("id"),
+    "category_2" int CONSTRAINT "posts_category_2_fkey" REFERENCES "categories"("id"),
+    "category_3" int NOT NULL CONSTRAINT "posts_category_3_fkey" REFERENCES "categories"("id") ON DELETE CASCADE,
+    "category_4" int CONSTRAINT "posts_category_4_fkey" REFERENCES "categories"("id") ON DELETE SET NULL,
+    "category_5" int CONSTRAINT "posts_category_5_fkey" REFERENCES "categories"("id"),
+    "category_6" int NOT NULL CONSTRAINT "posts_category_6_fkey" REFERENCES "categories"("id") ON UPDATE CASCADE,
+    "category_7" int CONSTRAINT "posts_category_7_fkey" REFERENCES "categories"("id") ON UPDATE SET NULL,
+    "category_8" int NOT NULL CONSTRAINT "posts_category_8_fkey" REFERENCES "categories"("id") ON DELETE SET NULL ON UPDATE CASCADE,
+    CONSTRAINT "posts_pk" PRIMARY KEY ("id"))
     """ |> remove_newlines]
   end
 
@@ -65,7 +65,7 @@ defmodule MssqlEcto.CreateTableTest do
               [{:add, :id, :serial, [primary_key: true]},
                {:add, :created_at, :naive_datetime, []}]}
     assert execute_ddl(create) ==
-      [~s|CREATE TABLE "posts" ("id" bigint identity(1,1), "created_at" datetime2, PRIMARY KEY ("id")) WITH FOO=BAR|]
+      [~s|CREATE TABLE "posts" ("id" int identity(1,1), "created_at" datetime2, CONSTRAINT "posts_pk" PRIMARY KEY ("id")) WITH FOO=BAR|]
   end
 
   test "create table with composite key" do
@@ -75,7 +75,8 @@ defmodule MssqlEcto.CreateTableTest do
                {:add, :name, :string, []}]}
 
     assert execute_ddl(create) == ["""
-    CREATE TABLE "posts" ("a" bigint, "b" bigint, "name" nvarchar(255), PRIMARY KEY ("a", "b"))
+    CREATE TABLE "posts" ("a" int, "b" int, "name" nvarchar(255),
+    CONSTRAINT "posts_pk" PRIMARY KEY ("a", "b"))
     """ |> remove_newlines]
   end
 

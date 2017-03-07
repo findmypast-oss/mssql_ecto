@@ -73,13 +73,13 @@ defmodule MssqlEcto.Helpers do
   end
 
   def ecto_to_db({:array, t}),     do: [ecto_to_db(t), ?[, ?]]
-  def ecto_to_db(:id),             do: "bigint"
-  def ecto_to_db(:serial),         do: "bigint identity(1,1)"
+  def ecto_to_db(:id),             do: "int"
+  def ecto_to_db(:serial),         do: "int identity(1,1)"
   def ecto_to_db(:binary_id),      do: "char(36)"
   def ecto_to_db(:uuid),           do: "char(36)"
   def ecto_to_db(:string),         do: "nvarchar"
   def ecto_to_db(:binary),         do: "varbinary"
-  def ecto_to_db(:integer),        do: "bigint"
+  def ecto_to_db(:integer),        do: "int"
   def ecto_to_db(:boolean),        do: "bit"
   def ecto_to_db(:map),            do: "nvarchar(max)"
   def ecto_to_db({:map, _}),       do: "nvarchar(max)"

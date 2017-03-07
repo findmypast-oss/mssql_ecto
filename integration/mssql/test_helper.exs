@@ -11,15 +11,16 @@ ExUnit.start exclude: [:array_type,
                        :rename_column,
                        :right_join,
                        :unique_constraint,
-                       :uses_usec]
+                       :uses_usec,
+                       :create_index_if_not_exists]
 
 # Configure Ecto for support and tests
 Application.put_env(:ecto, :primary_key_type, :id)
 
 # Load support files
-Code.require_file "../../deps/ecto/integration_test/support/repo.exs", __DIR__
-Code.require_file "../../deps/ecto/integration_test/support/schemas.exs", __DIR__
-Code.require_file "../../deps/ecto/integration_test/support/migration.exs", __DIR__
+Code.require_file "./support/repo.exs", __DIR__
+Code.require_file "./support/schemas.exs", __DIR__
+Code.require_file "./support/migration.exs", __DIR__
 
 pool =
   case System.get_env("ECTO_POOL") || "poolboy" do

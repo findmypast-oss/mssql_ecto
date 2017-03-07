@@ -46,16 +46,17 @@ defmodule MssqlEcto.Storage do
 
       @doc false
       def supports_ddl_transaction? do
-        true
+        false
       end
 
       @doc false
       def structure_dump(default, config) do
         table = config[:migration_source] || "schema_migrations"
 
-        with {:ok, versions} <- select_versions(table, config),
-             {:ok, path} <- pg_dump(default, config),
-             do: append_versions(table, versions, path)
+        raise "not implemented"
+        # with {:ok, versions} <- select_versions(table, config),
+        #      {:ok, path} <- pg_dump(default, config),
+             # do: append_versions(table, versions, path)
       end
 
       ## Helpers
@@ -65,19 +66,6 @@ defmodule MssqlEcto.Storage do
           {:ok, %{rows: rows}} -> {:ok, Enum.map(rows, &hd/1)}
           {:error, %{postgres: %{code: :undefined_table}}} -> {:ok, []}
           {:error, _} = error -> error
-        end
-      end
-
-      defp pg_dump(default, config) do
-        path = config[:dump_path] || Path.join(default, "structure.sql")
-        File.mkdir_p!(Path.dirname(path))
-
-        case run_with_cmd("pg_dump", config, ["--file", path, "--schema-only", "--no-acl",
-                                              "--no-owner", config[:database]]) do
-          {_output, 0} ->
-            {:ok, path}
-          {output, _} ->
-            {:error, output}
         end
       end
 
@@ -100,10 +88,12 @@ defmodule MssqlEcto.Storage do
       @doc false
       def structure_load(default, config) do
         path = config[:dump_path] || Path.join(default, "structure.sql")
-        case run_with_cmd("psql", config, ["--quiet", "--file", path, config[:database]]) do
-          {_output, 0} -> {:ok, path}
-          {output, _}  -> {:error, output}
-        end
+
+        raise "not implemented"
+        # case run_with_cmd("psql", config, ["--quiet", "--file", path, config[:database]]) do
+        #   {_output, 0} -> {:ok, path}
+        #   {output, _}  -> {:error, output}
+        # end
       end
 
       defp run_query(sql, opts) do

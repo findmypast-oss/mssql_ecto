@@ -41,6 +41,8 @@ defmodule MssqlEcto.Connection do
   @spec execute(connection :: DBConnection.t, prepared_query :: cached, params :: [term], options :: Keyword.t) ::
             {:ok, term} | {:error | :reset, Exception.t}
   def execute(conn, %Query{} = query, params, options) do
+              IO.puts(IO.iodata_to_binary query.statement)
+              # IO.inspect params
     case DBConnection.prepare_execute(conn, query, params, options) do
       {:ok, _query, result} -> {:ok, process_rows(result, options)}
       {:error, %Mssqlex.Error{}} = error -> error
@@ -129,18 +131,24 @@ defmodule MssqlEcto.Connection do
   def insert(prefix, table, header, rows, on_conflict, returning) do
     included_fields = header
     |> Enum.filter(fn value -> Enum.any?(rows, fn row -> value in row end) end)
-    included_rows = Enum.map(rows, fn row ->
-      row
-      |> Enum.zip(header)
-      |> Enum.filter_map(
-          fn {_row, col} -> col in included_fields end,
-          fn {row, _col} -> row end)
-    end)
-    fields = intersperse_map(included_fields, ?,, &quote_name/1)
-    IO.iodata_to_binary(["INSERT INTO ", quote_table(prefix, table), 
-                         " (", fields, ") ", returning(returning), " VALUES ",
-                         insert_all(included_rows), on_conflict(on_conflict,
-                         included_fields)])
+    if included_fields === [] do
+      IO.iodata_to_binary(["INSERT INTO ", quote_table(prefix, table),
+                           returning(returning), " DEFAULT VALUES"])
+    else
+      included_rows = Enum.map(rows, fn row ->
+        row
+        |> Enum.zip(header)
+        |> Enum.filter_map(
+        fn {_row, col} -> col in included_fields end,
+        fn {row, _col} -> row end)
+      end)
+      fields = intersperse_map(included_fields, ?,, &quote_name/1)
+      IO.iodata_to_binary(["INSERT INTO ", quote_table(prefix, table), 
+                           " (", fields, ") ",
+                           returning(returning), " VALUES ",
+                           insert_all(included_rows),
+                           on_conflict(on_conflict, included_fields)])
+    end
   end
 
   defp on_conflict({:raise, _, []}, _header) do
@@ -199,10 +207,11 @@ defmodule MssqlEcto.Connection do
   """
   @spec execute_ddl(command :: Ecto.Adapter.Migration.command) :: String.t
   def execute_ddl({command, %Table{} = table, columns}) when command in [:create, :create_if_not_exists] do
-    query = [if_do(command == :create_if_not_exists, "IF NOT EXISTS (SELECT * from SYSOBJECTS WHERE name='#{table.name}' and xtype='U')"),
+    query = [if_do(command == :create_if_not_exists,
+             "IF NOT EXISTS (SELECT * from SYSOBJECTS WHERE name='#{table.name}' and xtype='U') "),
              "CREATE TABLE ",
              quote_table(table.prefix, table.name), ?\s, ?(,
-             column_definitions(table, columns), pk_definition(columns, ", "), ?),
+             column_definitions(table, columns), pk_definition(columns, ", ", table), ?),
              options_expr(table.options)]
 
     [query]
@@ -214,8 +223,8 @@ defmodule MssqlEcto.Connection do
   end
 
   def execute_ddl({:alter, %Table{} = table, changes}) do
-    query = ["ALTER TABLE ", quote_table(table.prefix, table.name), ?\s,
-             column_changes(table, changes), pk_definition(changes, ", ADD ")]
+    query = [column_changes(table, changes),
+             quote_alter(pk_definition(changes, " ADD ", table), table)]
 
     [query]
   end
@@ -235,18 +244,19 @@ defmodule MssqlEcto.Connection do
     queries
   end
 
-  def execute_ddl({:create_if_not_exists, %Index{} = index}) do
-    [["DO $$ BEGIN ",
-      execute_ddl({:create, index}), ";",
-      "EXCEPTION WHEN duplicate_table THEN END; $$;"]]
-  end
+  # def execute_ddl({:create_if_not_exists, %Index{} = index}) do
+  #   [["DO $$ BEGIN ",
+  #     execute_ddl({:create, index}), ";",
+  #     "EXCEPTION WHEN duplicate_table THEN END; $$;"]]
+  # end
 
   def execute_ddl({command, %Index{} = index}) when command in @drops do
     if_exists = if command == :drop_if_exists, do: "IF EXISTS ", else: []
 
     [["DROP INDEX ",
       if_exists,
-      quote_table(index.prefix, index.name)]]
+      quote_table(index.prefix, index.name),
+      " ON ", quote_name(index.table)]]
   end
 
   def execute_ddl({:rename, %Table{} = current_table, %Table{} = new_table}) do
@@ -276,7 +286,11 @@ defmodule MssqlEcto.Connection do
   def execute_ddl(keyword) when is_list(keyword),
     do: error!(nil, "MSSQL adapter does not support keyword lists in execute")
 
-  defp pk_definition(columns, prefix) do
+  defp quote_alter([], _table), do: []
+  defp quote_alter(statement, table),
+    do: ["ALTER TABLE ", quote_table(table.prefix, table.name), statement, "; "]
+
+  defp pk_definition(columns, prefix, table) do
     pks =
       for {_, name, _, opts} <- columns,
           opts[:primary_key],
@@ -284,7 +298,8 @@ defmodule MssqlEcto.Connection do
 
     case pks do
       [] -> []
-      _  -> [prefix, "PRIMARY KEY (", intersperse_map(pks, ", ", &quote_name/1), ")"]
+      _  -> [prefix, "CONSTRAINT ", constraint_name("pk", table),
+             " PRIMARY KEY (", intersperse_map(pks, ", ", &quote_name/1), ")"]
     end
   end
 
@@ -294,63 +309,71 @@ defmodule MssqlEcto.Connection do
 
   defp column_definition(table, {:add, name, %Reference{} = ref, opts}) do
     [quote_name(name), ?\s, reference_column_type(ref.type, opts),
-     column_options(ref.type, opts), reference_expr(ref, table, name)]
+     column_options(ref.type, opts, table, name),
+     reference_expr(ref, table, name)]
   end
 
-  defp column_definition(_table, {:add, name, type, opts}) do
-    [quote_name(name), ?\s, column_type(type, opts), column_options(type, opts)]
+  defp column_definition(table, {:add, name, type, opts}) do
+    [quote_name(name), ?\s, column_type(type, opts),
+     column_options(type, opts, table, name)]
   end
 
   defp column_changes(table, columns) do
     {additions, changes} = Enum.split_with(columns,
       fn val -> elem(val, 0) == :add end)
-    [if_do(additions !== [], ["ADD ", intersperse_map(additions, ", ", &column_change(table, &1))]),
-     if_do(changes !== [], intersperse_map(changes, ", ", &column_change(table, &1)))]
-    |> Enum.filter(fn x -> x !== [] end)
-    |> Enum.intersperse(", ")
+    [if_do(additions !== [], column_additions(additions, table)),
+     if_do(changes !== [], Enum.map(changes, &column_change(table, &1)))]
+  end
+
+  defp column_additions(additions, table) do
+    quote_alter([" ADD ", intersperse_map(additions, ", ", &column_change(table, &1))], table)
   end
 
   defp column_change(table, {:add, name, %Reference{} = ref, opts}) do
     [quote_name(name), ?\s, reference_column_type(ref.type, opts),
-     column_options(ref.type, opts), reference_expr(ref, table, name)]
+     column_options(ref.type, opts, table, name), reference_expr(ref, table, name)]
   end
 
-  defp column_change(_table, {:add, name, type, opts}) do
+  defp column_change(table, {:add, name, type, opts}) do
     [quote_name(name), ?\s, column_type(type, opts),
-     column_options(type, opts)]
+     column_options(type, opts, table, name)]
   end
 
   defp column_change(table, {:modify, name, %Reference{} = ref, opts}) do
-    ["ALTER COLUMN ", quote_name(name), ?\s , reference_column_type(ref.type, opts),
-     constraint_expr(ref, table, name), modify_null(name, opts), modify_default(name, ref.type, opts)]
+    [quote_alter(constraint_expr(ref, table, name), table),
+     quote_alter([" ALTER COLUMN ", quote_name(name), ?\s, reference_column_type(ref.type, opts), modify_null(name, opts)], table),
+     modify_default(name, ref.type, opts, table, name)]
   end
 
-  defp column_change(_table, {:modify, name, type, opts}) do
-    ["ALTER COLUMN ", quote_name(name), ?\s,
-     column_type(type, opts), modify_null(name, opts), modify_default(name, type, opts)]
+  defp column_change(table, {:modify, name, type, opts}) do
+    [quote_alter([" ALTER COLUMN ", quote_name(name), ?\s, column_type(type, opts),
+     modify_null(name, opts)], table), modify_default(name, type, opts, table, name)]
   end
 
-  defp column_change(_table, {:remove, name}), do: ["DROP COLUMN ", quote_name(name)]
+  defp column_change(table, {:remove, name}) do
+    quote_alter([" DROP COLUMN ", quote_name(name)], table)
+  end
 
   defp modify_null(name, opts) do
     case Keyword.get(opts, :null) do
-      true  -> [", ALTER COLUMN ", quote_name(name), " DROP NOT NULL"]
-      false -> [", ALTER COLUMN ", quote_name(name), " SET NOT NULL"]
-      nil   -> []
+      nil -> []
+      val -> null_expr(val)
     end
   end
 
-  defp modify_default(name, type, opts) do
+  defp modify_default(name, type, opts, table, name) do
     case Keyword.fetch(opts, :default) do
-      {:ok, val} -> [", ALTER COLUMN ", quote_name(name), " SET", default_expr({:ok, val}, type)]
+      {:ok, val} ->
+        [quote_alter([" DROP CONSTRAINT IF EXISTS ", constraint_name("default", table, name)], table),
+         quote_alter([" ADD", default_expr({:ok, val}, type, table, name), " FOR ", quote_name(name)], table)]
       :error -> []
     end
   end
 
-  defp column_options(type, opts) do
+  defp column_options(type, opts, table, name) do
     default = Keyword.fetch(opts, :default)
     null    = Keyword.get(opts, :null)
-    [default_expr(default, type), null_expr(null)]
+    [default_expr(default, type, table, name), null_expr(null)]
   end
 
   defp null_expr(false), do: " NOT NULL"
@@ -361,6 +384,17 @@ defmodule MssqlEcto.Connection do
     ["CONSTRAINT ", quote_name(constraint.name), " CHECK (", check, ")"]
   end
 
+  defp constraint_name(constraint_type, table, name \\ []) do
+    sections = [quote_name(table.prefix, nil), quote_name(table.name, nil),
+                quote_name(name, nil), constraint_type] |> Enum.reject(&(&1 === []))
+    [?", Enum.intersperse(sections, ?_), ?"]
+  end
+
+  defp default_expr({:ok, _} = default, type, table, name),
+    do: [" CONSTRAINT ", constraint_name("default", table, name),
+         default_expr(default, type)]
+  defp default_expr(:error, _, _, _),
+    do: []
   defp default_expr({:ok, nil}, _type),
     do: " DEFAULT NULL"
   defp default_expr({:ok, []}, _type),
@@ -376,8 +410,6 @@ defmodule MssqlEcto.Connection do
   defp default_expr({:ok, expr}, type),
     do: raise(ArgumentError, "unknown default `#{inspect expr}` for type `#{inspect type}`. " <>
                              ":default may be a string, number, boolean, empty list or a fragment(...)")
-  defp default_expr(:error, _),
-    do: []
 
   defp index_expr(literal) when is_binary(literal),
     do: literal
@@ -413,7 +445,7 @@ defmodule MssqlEcto.Connection do
          reference_on_delete(ref.on_delete), reference_on_update(ref.on_update)]
 
   defp constraint_expr(%Reference{} = ref, table, name),
-    do: [", ADD CONSTRAINT ", reference_name(ref, table, name), ?\s,
+    do: [" ADD CONSTRAINT ", reference_name(ref, table, name), ?\s,
          "FOREIGN KEY (", quote_name(name),
          ") REFERENCES ", quote_table(table.prefix, ref.table), ?(, quote_name(ref.column), ?),
          reference_on_delete(ref.on_delete), reference_on_update(ref.on_update)]
@@ -424,7 +456,7 @@ defmodule MssqlEcto.Connection do
   defp reference_name(%Reference{name: name}, _table, _column),
     do: quote_name(name)
 
-  defp reference_column_type(:serial, _opts), do: "bigint"
+  defp reference_column_type(:serial, _opts), do: "int"
   defp reference_column_type(type, opts), do: column_type(type, opts)
 
   defp reference_on_delete(:nilify_all), do: " ON DELETE SET NULL"
