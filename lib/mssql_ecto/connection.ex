@@ -129,8 +129,14 @@ defmodule MssqlEcto.Connection do
   Receives a query and must return a DELETE query.
   """
   @spec delete_all(query :: Ecto.Query.t) :: String.t
-  def delete_all(_query) do
-    raise("not implemented")
+  def delete_all(%{from: from} = query) do
+    sources = QueryString.create_names(query)
+    {from, name} = get_source(query, sources, 0, from)
+
+    join = QueryString.join(query, sources)
+    where = QueryString.where(query, sources)
+
+    IO.iodata_to_binary(["DELETE FROM ", from, " AS ", name, join, where | returning(query, sources, "DELETED")])
   end
 
   @doc """

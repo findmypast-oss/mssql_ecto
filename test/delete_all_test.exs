@@ -1,6 +1,5 @@
 defmodule MssqlEcto.DeleteAllTest do
   use ExUnit.Case, async: true
-  @moduletag skip: "pending implementation"
 
   import Ecto.Query
 
@@ -16,10 +15,10 @@ defmodule MssqlEcto.DeleteAllTest do
       field :z, :integer
       field :w, {:array, :integer}
 
-      has_many :comments, MssqlEctoTest.Schema2,
+      has_many :comments, MssqlEcto.DeleteAllTest.Schema2,
         references: :x,
         foreign_key: :z
-      has_one :permalink, MssqlEctoTest.Schema3,
+      has_one :permalink, MssqlEcto.DeleteAllTest.Schema3,
         references: :y,
         foreign_key: :id
     end
@@ -29,7 +28,7 @@ defmodule MssqlEcto.DeleteAllTest do
     use Ecto.Schema
 
     schema "schema2" do
-      belongs_to :post, MssqlEctoTest.Schema,
+      belongs_to :post, MssqlEcto.DeleteAllTest.Schema,
         references: :x,
         foreign_key: :z
     end
@@ -55,20 +54,20 @@ defmodule MssqlEcto.DeleteAllTest do
 
     query = Schema |> join(:inner, [p], q in Schema2, p.x == q.z) |> normalize
     assert SQL.delete_all(query) ==
-           ~s{DELETE FROM "schema" AS s0 USING "schema2" AS s1 WHERE (s0."x" = s1."z")}
+           ~s{DELETE FROM "schema" AS s0 INNER JOIN "schema2" AS s1 ON s0."x" = s1."z"}
 
     query = from(e in Schema, where: e.x == 123, join: q in Schema2, on: e.x == q.z) |> normalize
     assert SQL.delete_all(query) ==
-           ~s{DELETE FROM "schema" AS s0 USING "schema2" AS s1 WHERE (s0."x" = s1."z") AND (s0."x" = 123)}
+           ~s{DELETE FROM "schema" AS s0 INNER JOIN "schema2" AS s1 ON s0."x" = s1."z" WHERE (s0."x" = 123)}
 
     query = from(e in Schema, where: e.x == 123, join: assoc(e, :comments), join: assoc(e, :permalink)) |> normalize
     assert SQL.delete_all(query) ==
-           ~s{DELETE FROM "schema" AS s0 USING "schema2" AS s1, "schema3" AS s2 WHERE (s1."z" = s0."x") AND (s2."id" = s0."y") AND (s0."x" = 123)}
+      ~s{DELETE FROM "schema" AS s0 INNER JOIN "schema2" AS s1 ON s1."z" = s0."x" INNER JOIN "schema3" AS s2 ON s2."id" = s0."y" WHERE (s0."x" = 123)}
   end
 
   test "delete all with returning" do
     query = Schema |> Queryable.to_query |> select([m], m) |> normalize
-    assert SQL.delete_all(query) == ~s{DELETE FROM "schema" AS s0 RETURNING s0."id", s0."x", s0."y", s0."z", s0."w"}
+    assert SQL.delete_all(query) == ~s{DELETE FROM "schema" AS s0 OUTPUT DELETED."id", DELETED."x", DELETED."y", DELETED."z", DELETED."w"}
   end
 
   test "delete all with prefix" do
