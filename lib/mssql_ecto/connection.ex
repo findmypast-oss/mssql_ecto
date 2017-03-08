@@ -122,7 +122,7 @@ defmodule MssqlEcto.Connection do
     {join, wheres} = QueryString.using_join(query, :update_all, "FROM", sources)
     where = QueryString.where(%{query | wheres: wheres ++ query.wheres}, sources)
 
-    IO.iodata_to_binary([prefix, fields, join, where | returning(query, sources)])
+    IO.iodata_to_binary([prefix, fields, join, where | returning(query, sources, "INSERTED")])
   end
 
   @doc """
@@ -145,7 +145,7 @@ defmodule MssqlEcto.Connection do
     |> Enum.filter(fn value -> Enum.any?(rows, fn row -> value in row end) end)
     if included_fields === [] do
       IO.iodata_to_binary(["INSERT INTO ", quote_table(prefix, table),
-                           returning(returning), " DEFAULT VALUES"])
+                           returning(returning, "INSERTED"), " DEFAULT VALUES"])
     else
       included_rows = Enum.map(rows, fn row ->
         row
@@ -156,8 +156,8 @@ defmodule MssqlEcto.Connection do
       end)
       fields = intersperse_map(included_fields, ?,, &quote_name/1)
       IO.iodata_to_binary(["INSERT INTO ", quote_table(prefix, table),
-                           " (", fields, ") ",
-                           returning(returning), " VALUES ",
+                           " (", fields, ")",
+                           returning(returning, "INSERTED"), " VALUES ",
                            insert_all(included_rows),
                            on_conflict(on_conflict, included_fields)])
     end
@@ -179,15 +179,15 @@ defmodule MssqlEcto.Connection do
   defp insert_all_value(nil), do: "DEFAULT"
   defp insert_all_value(_),   do: '?'
 
-  defp returning(%Ecto.Query{select: nil}, _sources),
+  defp returning(%Ecto.Query{select: nil}, _sources, _),
     do: []
-  defp returning(%Ecto.Query{select: %{fields: fields}} = query, sources),
-    do: [" OUTPUT " | QueryString.select_fields(fields, {{nil, "INSERTED", nil}}, query)]
+  defp returning(%Ecto.Query{select: %{fields: fields}} = query, sources, operation),
+    do: [" OUTPUT " | QueryString.select_fields(fields, {{nil, operation, nil}}, query)]
 
-  defp returning([]),
+  defp returning([], _),
     do: []
-  defp returning(returning),
-    do: [" OUTPUT " | Enum.map_join(returning, ", ", fn column -> ["INSERTED." | quote_name(column)] end)]
+  defp returning(returning, operation),
+    do: [" OUTPUT " | Enum.map_join(returning, ", ", fn column -> [operation, ?. | quote_name(column)] end)]
 
   @doc """
   Returns an UPDATE for the given `fields` in `table` filtered by
@@ -205,7 +205,7 @@ defmodule MssqlEcto.Connection do
     end)
 
   IO.iodata_to_binary(["UPDATE ", quote_table(prefix, table), " SET ",
-                       fields, " WHERE ", filters | returning(returning)])
+                       fields, " WHERE ", filters | returning(returning, "INSERTED")])
   end
 
   @doc """
@@ -214,7 +214,12 @@ defmodule MssqlEcto.Connection do
   @spec delete(prefix :: String.t, table :: String.t,
                    filters :: [atom], returning :: [atom]) :: String.t
   def delete(prefix, table, filters, returning) do
-    raise("not implemented")
+    filters = intersperse_map(filters, " AND ", fn field ->
+      [quote_name(field), " = ?"]
+    end)
+
+    IO.iodata_to_binary(["DELETE FROM ", quote_table(prefix, table), " WHERE ",
+                         filters | returning(returning, "DELETED")])
   end
 
   ## DDL
