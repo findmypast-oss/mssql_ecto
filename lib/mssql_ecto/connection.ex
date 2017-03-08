@@ -113,8 +113,16 @@ defmodule MssqlEcto.Connection do
   Receives a query and values to update and must return an UPDATE query.
   """
   @spec update_all(query :: Ecto.Query.t) :: String.t
-  def update_all(query) do
-    raise("not implemented")
+  def update_all(%{from: from} = query, prefix \\ nil) do
+    sources = QueryString.create_names(query)
+    {from, name} = get_source(query, sources, 0, from)
+
+    prefix = prefix || ["UPDATE ", from, " AS ", name | " SET "]
+    fields = QueryString.update_fields(query, sources)
+    {join, wheres} = QueryString.using_join(query, :update_all, "FROM", sources)
+    where = QueryString.where(%{query | wheres: wheres ++ query.wheres}, sources)
+
+    IO.iodata_to_binary([prefix, fields, join, where | returning(query, sources)])
   end
 
   @doc """
@@ -174,12 +182,12 @@ defmodule MssqlEcto.Connection do
   defp returning(%Ecto.Query{select: nil}, _sources),
     do: []
   defp returning(%Ecto.Query{select: %{fields: fields}} = query, sources),
-    do: "OUTPUT " <> select_fields(fields, sources, query)
+    do: [" OUTPUT " | QueryString.select_fields(fields, {{nil, "INSERTED", nil}}, query)]
 
   defp returning([]),
     do: []
   defp returning(returning),
-    do: "OUTPUT " <> Enum.map_join(returning, ", ", fn column -> ["INSERTED." | quote_name(column)] end)
+    do: [" OUTPUT " | Enum.map_join(returning, ", ", fn column -> ["INSERTED." | quote_name(column)] end)]
 
   @doc """
   Returns an UPDATE for the given `fields` in `table` filtered by
@@ -188,7 +196,16 @@ defmodule MssqlEcto.Connection do
   @spec update(prefix :: String.t, table :: String.t, fields :: [atom],
                    filters :: [atom], returning :: [atom]) :: String.t
   def update(prefix, table, fields, filters, returning) do
-    raise("not implemented")
+    fields = intersperse_map(fields, ", ", fn field ->
+      [quote_name(field), " = ?"]
+    end)
+
+    filters = intersperse_map(filters, " AND ", fn field ->
+      [quote_name(field), " = ?"]
+    end)
+
+  IO.iodata_to_binary(["UPDATE ", quote_table(prefix, table), " SET ",
+                       fields, " WHERE ", filters | returning(returning)])
   end
 
   @doc """

@@ -1,6 +1,5 @@
 defmodule MssqlEcto.UpdateAllTest do
   use ExUnit.Case, async: true
-  @moduletag skip: "pending implementation"
 
   import Ecto.Query
 
@@ -59,7 +58,7 @@ defmodule MssqlEcto.UpdateAllTest do
 
     query = from(m in Schema, update: [set: [x: ^0]]) |> normalize(:update_all)
     assert SQL.update_all(query) ==
-           ~s{UPDATE "schema" AS s0 SET "x" = $1}
+           ~s{UPDATE "schema" AS s0 SET "x" = ?}
 
     query = Schema |> join(:inner, [p], q in Schema2, p.x == q.z)
                   |> update([_], set: [x: 0]) |> normalize(:update_all)
@@ -76,9 +75,10 @@ defmodule MssqlEcto.UpdateAllTest do
   test "update all with returning" do
     query = from(m in Schema, update: [set: [x: 0]]) |> select([m], m) |> normalize(:update_all)
     assert SQL.update_all(query) ==
-           ~s{UPDATE "schema" AS s0 SET "x" = 0 RETURNING s0."id", s0."x", s0."y", s0."z", s0."w"}
+           ~s{UPDATE "schema" AS s0 SET "x" = 0 OUTPUT INSERTED."id", INSERTED."x", INSERTED."y", INSERTED."z", INSERTED."w"}
   end
 
+  @tag skip: "Arrays not supported"
   test "update all array ops" do
     query = from(m in Schema, update: [push: [w: 0]]) |> normalize(:update_all)
     assert SQL.update_all(query) ==
