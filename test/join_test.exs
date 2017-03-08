@@ -1,6 +1,5 @@
 defmodule MssqlEcto.JoinTest do
   use ExUnit.Case, async: true
-  @moduletag skip: "pending implementation"
 
   import Ecto.Query
 
@@ -15,10 +14,10 @@ defmodule MssqlEcto.JoinTest do
       field :z, :integer
       field :w, {:array, :integer}
 
-      has_many :comments, MssqlEctoTest.Schema2,
+      has_many :comments, MssqlEcto.JoinTest.Schema2,
         references: :x,
         foreign_key: :z
-      has_one :permalink, MssqlEctoTest.Schema3,
+      has_one :permalink, MssqlEcto.JoinTest.Schema3,
         references: :y,
         foreign_key: :id
     end
@@ -28,9 +27,19 @@ defmodule MssqlEcto.JoinTest do
     use Ecto.Schema
 
     schema "schema2" do
-      belongs_to :post, MssqlEctoTest.Schema,
+      belongs_to :post, MssqlEcto.JoinTest.Schema,
         references: :x,
         foreign_key: :z
+    end
+  end
+
+  defmodule Schema3 do
+    use Ecto.Schema
+
+    schema "schema3" do
+      field :list1, {:array, :string}
+      field :list2, {:array, :integer}
+      field :binary, :binary
     end
   end
 
@@ -63,13 +72,13 @@ defmodule MssqlEcto.JoinTest do
     query = "comments" |> join(:inner, [c], p in subquery(posts), true) |> select([_, p], p.x) |> normalize
     assert SQL.all(query) ==
            ~s{SELECT s1."x" FROM "comments" AS c0 } <>
-           ~s{INNER JOIN (SELECT p0."x" AS "x", p0."y" AS "y" FROM "posts" AS p0 WHERE (p0."title" = $1)) AS s1 ON TRUE}
+           ~s{INNER JOIN (SELECT p0."x" AS "x", p0."y" AS "y" FROM "posts" AS p0 WHERE (p0."title" = ?)) AS s1 ON TRUE}
 
     posts = subquery("posts" |> where(title: ^"hello") |> select([r], %{x: r.x, z: r.y}))
     query = "comments" |> join(:inner, [c], p in subquery(posts), true) |> select([_, p], p) |> normalize
     assert SQL.all(query) ==
            ~s{SELECT s1."x", s1."z" FROM "comments" AS c0 } <>
-           ~s{INNER JOIN (SELECT p0."x" AS "x", p0."y" AS "z" FROM "posts" AS p0 WHERE (p0."title" = $1)) AS s1 ON TRUE}
+           ~s{INNER JOIN (SELECT p0."x" AS "x", p0."y" AS "z" FROM "posts" AS p0 WHERE (p0."title" = ?)) AS s1 ON TRUE}
   end
 
   test "join with prefix" do
@@ -85,9 +94,9 @@ defmodule MssqlEcto.JoinTest do
             |> where([p], p.id > 0 and p.id < ^100)
             |> normalize
     assert SQL.all(query) ==
-           ~s{SELECT s0."id", $1 FROM "schema" AS s0 INNER JOIN } <>
-           ~s{(SELECT * FROM schema2 AS s2 WHERE s2.id = s0."x" AND s2.field = $2) AS f1 ON TRUE } <>
-           ~s{WHERE ((s0."id" > 0) AND (s0."id" < $3))}
+           ~s{SELECT s0."id", ? FROM "schema" AS s0 INNER JOIN } <>
+           ~s{(SELECT * FROM schema2 AS s2 WHERE s2.id = s0."x" AND s2.field = ?) AS f1 ON TRUE } <>
+           ~s{WHERE ((s0."id" > 0) AND (s0."id" < ?))}
   end
 
   test "join with fragment and on defined" do
@@ -96,7 +105,7 @@ defmodule MssqlEcto.JoinTest do
             |> select([p], {p.id, ^0})
             |> normalize
     assert SQL.all(query) ==
-           ~s{SELECT s0."id", $1 FROM "schema" AS s0 INNER JOIN } <>
+           ~s{SELECT s0."id", ? FROM "schema" AS s0 INNER JOIN } <>
            ~s{(SELECT * FROM schema2) AS f1 ON f1."id" = s0."id"}
   end
 
@@ -108,8 +117,8 @@ defmodule MssqlEcto.JoinTest do
             |> normalize
     assert SQL.all(query) ==
            ~s{SELECT s0."id", f1."z" FROM "schema" AS s0 INNER JOIN LATERAL } <>
-           ~s{(SELECT * FROM schema2 AS s2 WHERE s2.id = s0."x" AND s2.field = $1) AS f1 ON TRUE } <>
-           ~s{WHERE ((s0."id" > 0) AND (s0."id" < $2))}
+           ~s{(SELECT * FROM schema2 AS s2 WHERE s2.id = s0."x" AND s2.field = ?) AS f1 ON TRUE } <>
+           ~s{WHERE ((s0."id" > 0) AND (s0."id" < ?))}
   end
 
   test "association join belongs_to" do

@@ -78,7 +78,7 @@ defmodule MssqlEcto.Helpers do
   def ecto_to_db(:binary_id),      do: "char(36)"
   def ecto_to_db(:uuid),           do: "char(36)"
   def ecto_to_db(:string),         do: "nvarchar"
-  def ecto_to_db(:binary),         do: "varbinary"
+  def ecto_to_db(:binary),         do: "nvarchar(max)"
   def ecto_to_db(:integer),        do: "int"
   def ecto_to_db(:boolean),        do: "bit"
   def ecto_to_db(:map),            do: "nvarchar(max)"

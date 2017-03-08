@@ -26,8 +26,10 @@ defmodule MssqlEcto.Connection do
   @spec prepare_execute(connection :: DBConnection.t, name :: String.t, prepared, params :: [term], options :: Keyword.t) ::
   {:ok, query :: map, term} | {:error, Exception.t}
   def prepare_execute(conn, name, prepared_query, params, options) do
+    IO.puts(IO.iodata_to_binary prepared_query)
     case DBConnection.prepare_execute(conn, %Query{name: name, statement: prepared_query}, params, options) do
-      {:ok, query, result} -> {:ok, query, result}
+      {:ok, query, result} ->
+        {:ok, query, process_rows(result, options)}
       {:error, %Mssqlex.Error{}} = error -> error
       {:error, error} -> raise error
     end
@@ -54,6 +56,7 @@ defmodule MssqlEcto.Connection do
   end
 
   defp process_rows(result, options) do
+    #IO.inspect options[:decode_mapper]
     decoder = options[:decode_mapper] || fn x -> x end
     Map.update!(result, :rows, fn row ->
       unless is_nil(row), do: Enum.map(row, decoder)
@@ -143,7 +146,7 @@ defmodule MssqlEcto.Connection do
         fn {row, _col} -> row end)
       end)
       fields = intersperse_map(included_fields, ?,, &quote_name/1)
-      IO.iodata_to_binary(["INSERT INTO ", quote_table(prefix, table), 
+      IO.iodata_to_binary(["INSERT INTO ", quote_table(prefix, table),
                            " (", fields, ") ",
                            returning(returning), " VALUES ",
                            insert_all(included_rows),

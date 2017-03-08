@@ -9,14 +9,18 @@ defmodule MssqlEcto.Type do
     {:ok, value}
   end
 
-  def decode(value, type) when type in @bigint_types do
-    case Integer.parse(value) do
-      {int, _} -> {:ok, int}
-      :error -> {:error, "Not an integer id"}
-    end
+  # def decode(value, type) when type in @bigint_types do
+  #   case Integer.parse(value) do
+  #     {int, _} -> {:ok, int}
+  #     :error -> {:error, "Not an integer id"}
+  #   end
+  # end
+  def decode(value, :uuid) do
+    Ecto.UUID.dump(value)
   end
 
   def decode(value, type) do
+    IO.inspect {value, type}
     {:ok, value}
   end
 
