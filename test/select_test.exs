@@ -119,7 +119,6 @@ defmodule MssqlEcto.SelectTest do
     assert SQL.all(query) == ~s{SELECT DISTINCT ON (s0."x") s0."x" FROM "schema" AS s0 ORDER BY s0."x" DESC, s0."y"}
   end
 
-  @tag :only
   test "where" do
     query = Schema |> where([r], r.x == 42) |> where([r], r.y != 43) |> select([r], r.x) |> normalize
     assert SQL.all(query) == ~s{SELECT s0."x" FROM "schema" AS s0 WHERE (s0."x" = 42) AND (s0."y" != 43)}
@@ -259,10 +258,10 @@ defmodule MssqlEcto.SelectTest do
     assert SQL.all(query) == ~s{SELECT 1 IN (1,s0."x",3) FROM "schema" AS s0}
 
     query = Schema |> select([e], 1 in ^[]) |> normalize
-    assert SQL.all(query) == ~s{SELECT 1 = ANY(?) FROM "schema" AS s0}
+    assert SQL.all(query) == ~s{SELECT false FROM "schema" AS s0}
 
     query = Schema |> select([e], 1 in ^[1, 2, 3]) |> normalize
-    assert SQL.all(query) == ~s{SELECT 1 = ANY(?) FROM "schema" AS s0}
+    assert SQL.all(query) == ~s{SELECT 1 IN (?,?,?) FROM "schema" AS s0}
 
     query = Schema |> select([e], 1 in [1, ^2, 3]) |> normalize
     assert SQL.all(query) == ~s{SELECT 1 IN (1,?,3) FROM "schema" AS s0}
@@ -271,7 +270,7 @@ defmodule MssqlEcto.SelectTest do
     assert SQL.all(query) == ~s{SELECT ? IN (1,?,3) FROM "schema" AS s0}
 
     query = Schema |> select([e], ^1 in ^[1, 2, 3]) |> normalize
-    assert SQL.all(query) == ~s{SELECT ? = ANY(?) FROM "schema" AS s0}
+    assert SQL.all(query) == ~s{SELECT ? IN (?,?,?) FROM "schema" AS s0}
 
     query = Schema |> select([e], 1 in e.w) |> normalize
     assert SQL.all(query) == ~s{SELECT 1 = ANY(s0."w") FROM "schema" AS s0}

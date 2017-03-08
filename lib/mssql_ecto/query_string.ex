@@ -209,8 +209,13 @@ defmodule MssqlEcto.QueryString do
     [expr(left, sources, query), " IN (", args, ?)]
   end
 
-  def expr({:in, _, [left, {:^, _, [ix, _]}]}, sources, query) do
-    [expr(left, sources, query), " = ANY(?)"]
+  def expr({:in, _, [_, {:^, _, [_, 0]}]}, _sources, _query) do
+    "false"
+  end
+
+  def expr({:in, _, [left, {:^, _, [_, length]}]}, sources, query) do
+    args = Enum.intersperse(List.duplicate(??, length), ?,)
+    [expr(left, sources, query), " IN (", args, ?)]
   end
 
   def expr({:in, _, [left, right]}, sources, query) do

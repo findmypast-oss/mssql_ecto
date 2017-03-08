@@ -27,6 +27,7 @@ defmodule MssqlEcto.Connection do
   {:ok, query :: map, term} | {:error, Exception.t}
   def prepare_execute(conn, name, prepared_query, params, options) do
     IO.puts(IO.iodata_to_binary prepared_query)
+    IO.inspect params
     case DBConnection.prepare_execute(conn, %Query{name: name, statement: prepared_query}, params, options) do
       {:ok, query, result} ->
         {:ok, query, process_rows(result, options)}
@@ -44,7 +45,7 @@ defmodule MssqlEcto.Connection do
             {:ok, term} | {:error | :reset, Exception.t}
   def execute(conn, %Query{} = query, params, options) do
               IO.puts(IO.iodata_to_binary query.statement)
-              # IO.inspect params
+              IO.inspect params
     case DBConnection.prepare_execute(conn, query, params, options) do
       {:ok, _query, result} -> {:ok, process_rows(result, options)}
       {:error, %Mssqlex.Error{}} = error -> error
