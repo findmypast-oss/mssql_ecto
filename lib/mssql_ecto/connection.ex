@@ -70,7 +70,7 @@ defmodule MssqlEcto.Connection do
   """
   @spec stream(connection :: DBConnection.conn, prepared_query :: prepared, params :: [term], options :: Keyword.t) ::
             Enum.t
-  def stream(conn, prepared, params, options) do
+  def stream(_conn, _prepared, _params, _options) do
     raise("not implemented")
   end
 
@@ -129,7 +129,7 @@ defmodule MssqlEcto.Connection do
   Receives a query and must return a DELETE query.
   """
   @spec delete_all(query :: Ecto.Query.t) :: String.t
-  def delete_all(query) do
+  def delete_all(_query) do
     raise("not implemented")
   end
 
@@ -181,7 +181,7 @@ defmodule MssqlEcto.Connection do
 
   defp returning(%Ecto.Query{select: nil}, _sources, _),
     do: []
-  defp returning(%Ecto.Query{select: %{fields: fields}} = query, sources, operation),
+  defp returning(%Ecto.Query{select: %{fields: fields}} = query, _sources, operation),
     do: [" OUTPUT " | QueryString.select_fields(fields, {{nil, operation, nil}}, query)]
 
   defp returning([], _),
@@ -281,8 +281,8 @@ defmodule MssqlEcto.Connection do
 
     [["DROP INDEX ",
       if_exists,
-      quote_table(index.prefix, index.name),
-      " ON ", quote_name(index.table)]]
+      quote_name(index.name),
+      " ON ", quote_table(index.prefix, index.table)]]
   end
 
   def execute_ddl({:rename, %Table{} = current_table, %Table{} = new_table}) do
@@ -380,7 +380,7 @@ defmodule MssqlEcto.Connection do
     quote_alter([" DROP COLUMN ", quote_name(name)], table)
   end
 
-  defp modify_null(name, opts) do
+  defp modify_null(_name, opts) do
     case Keyword.get(opts, :null) do
       nil -> []
       val -> null_expr(val)

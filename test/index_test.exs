@@ -1,6 +1,5 @@
 defmodule MssqlEcto.IndexTest do
   use ExUnit.Case, async: true
-  @moduletag skip: "pending implementation"
 
   import Ecto.Migration, only: [index: 2, index: 3]
 
@@ -51,12 +50,12 @@ defmodule MssqlEcto.IndexTest do
 
   test "drop index" do
     drop = {:drop, index(:posts, [:id], name: "posts$main")}
-    assert execute_ddl(drop) == [~s|DROP INDEX "posts$main"|]
+    assert execute_ddl(drop) == [~s|DROP INDEX "posts$main" ON "posts"|]
   end
 
   test "drop index with prefix" do
     drop = {:drop, index(:posts, [:id], name: "posts$main", prefix: :foo)}
-    assert execute_ddl(drop) == [~s|DROP INDEX "foo"."posts$main"|]
+    assert execute_ddl(drop) == [~s|DROP INDEX "posts$main" ON "foo"."posts"|]
   end
 
   defp execute_ddl(command) do
