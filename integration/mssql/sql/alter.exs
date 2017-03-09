@@ -24,7 +24,7 @@ defmodule Ecto.Integration.AlterTest do
 
     def up do
       alter table(:alter_col_type) do
-        modify :value, :numeric
+        modify :value, :real
       end
     end
 

@@ -1,11 +1,13 @@
 defmodule MssqlEcto.Type do
   @int_types [:bigint, :integer, :id, :serial]
+  @decimal_types [:numeric, :decimal]
 
   def encode(value, :bigint) do
     {:ok, to_string(value)}
   end
 
   def encode(value, type) do
+    IO.inspect {value, type}
     {:ok, value}
   end
 
@@ -15,6 +17,11 @@ defmodule MssqlEcto.Type do
       {int, _} -> {:ok, int}
       :error -> {:error, "Not an integer id"}
     end
+  end
+
+  def decode(value, type)
+  when type in @decimal_types and is_binary(value) do
+    Decimal.parse(value)
   end
 
   def decode(value, :uuid) do

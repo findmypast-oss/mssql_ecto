@@ -46,33 +46,33 @@ defmodule MssqlEcto.DeleteAllTest do
   
   test "delete all" do
     query = Schema |> Queryable.to_query |> normalize
-    assert SQL.delete_all(query) == ~s{DELETE FROM "schema" AS s0}
+    assert SQL.delete_all(query) == ~s{DELETE s0 FROM "schema" AS s0}
 
     query = from(e in Schema, where: e.x == 123) |> normalize
     assert SQL.delete_all(query) ==
-           ~s{DELETE FROM "schema" AS s0 WHERE (s0."x" = 123)}
+           ~s{DELETE s0 FROM "schema" AS s0 WHERE (s0."x" = 123)}
 
     query = Schema |> join(:inner, [p], q in Schema2, p.x == q.z) |> normalize
     assert SQL.delete_all(query) ==
-           ~s{DELETE FROM "schema" AS s0 INNER JOIN "schema2" AS s1 ON s0."x" = s1."z"}
+           ~s{DELETE s0 FROM "schema" AS s0 INNER JOIN "schema2" AS s1 ON s0."x" = s1."z"}
 
     query = from(e in Schema, where: e.x == 123, join: q in Schema2, on: e.x == q.z) |> normalize
     assert SQL.delete_all(query) ==
-           ~s{DELETE FROM "schema" AS s0 INNER JOIN "schema2" AS s1 ON s0."x" = s1."z" WHERE (s0."x" = 123)}
+           ~s{DELETE s0 FROM "schema" AS s0 INNER JOIN "schema2" AS s1 ON s0."x" = s1."z" WHERE (s0."x" = 123)}
 
     query = from(e in Schema, where: e.x == 123, join: assoc(e, :comments), join: assoc(e, :permalink)) |> normalize
     assert SQL.delete_all(query) ==
-      ~s{DELETE FROM "schema" AS s0 INNER JOIN "schema2" AS s1 ON s1."z" = s0."x" INNER JOIN "schema3" AS s2 ON s2."id" = s0."y" WHERE (s0."x" = 123)}
+      ~s{DELETE s0 FROM "schema" AS s0 INNER JOIN "schema2" AS s1 ON s1."z" = s0."x" INNER JOIN "schema3" AS s2 ON s2."id" = s0."y" WHERE (s0."x" = 123)}
   end
 
   test "delete all with returning" do
     query = Schema |> Queryable.to_query |> select([m], m) |> normalize
-    assert SQL.delete_all(query) == ~s{DELETE FROM "schema" AS s0 OUTPUT DELETED."id", DELETED."x", DELETED."y", DELETED."z", DELETED."w"}
+    assert SQL.delete_all(query) == ~s{DELETE s0 FROM "schema" AS s0 OUTPUT DELETED."id", DELETED."x", DELETED."y", DELETED."z", DELETED."w"}
   end
 
   test "delete all with prefix" do
     query = Schema |> Queryable.to_query |> normalize
-    assert SQL.delete_all(%{query | prefix: "prefix"}) == ~s{DELETE FROM "prefix"."schema" AS s0}
+    assert SQL.delete_all(%{query | prefix: "prefix"}) == ~s{DELETE s0 FROM "prefix"."schema" AS s0}
   end
 
   defp normalize(query, operation \\ :all, counter \\ 0) do

@@ -117,12 +117,13 @@ defmodule MssqlEcto.Connection do
     sources = QueryString.create_names(query)
     {from, name} = get_source(query, sources, 0, from)
 
-    prefix = prefix || ["UPDATE ", from, " AS ", name | " SET "]
+    prefix = prefix || ["UPDATE ", name | " SET "]
+    table_alias = [" FROM ", from, " AS ", name]
     fields = QueryString.update_fields(query, sources)
-    {join, wheres} = QueryString.using_join(query, :update_all, "FROM", sources)
-    where = QueryString.where(%{query | wheres: wheres ++ query.wheres}, sources)
+    join = QueryString.join(query, sources)
+    where = QueryString.where(query, sources)
 
-    IO.iodata_to_binary([prefix, fields, join, where | returning(query, sources, "INSERTED")])
+    IO.iodata_to_binary([prefix, fields, returning(query, sources, "INSERTED"), table_alias, join, where])
   end
 
   @doc """
@@ -136,7 +137,7 @@ defmodule MssqlEcto.Connection do
     join = QueryString.join(query, sources)
     where = QueryString.where(query, sources)
 
-    IO.iodata_to_binary(["DELETE FROM ", from, " AS ", name, join, where | returning(query, sources, "DELETED")])
+    IO.iodata_to_binary(["DELETE ", name, " FROM ", from, " AS ", name, join, where | returning(query, sources, "DELETED")])
   end
 
   @doc """
