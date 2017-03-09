@@ -361,7 +361,6 @@ defmodule Ecto.Integration.MigrationTest do
     :ok = down(PoolRepo, 20070906120000, AddColumnMigration, log: false)
   end
 
-  @tag :only
   @tag :modify_column
   test "modify column" do
     assert :ok == up(PoolRepo, 20080906120000, AlterColumnMigration, log: false)

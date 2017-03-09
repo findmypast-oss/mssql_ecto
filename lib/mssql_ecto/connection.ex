@@ -31,7 +31,12 @@ defmodule MssqlEcto.Connection do
     case DBConnection.prepare_execute(conn, %Query{name: name, statement: prepared_query}, params, options) do
       {:ok, query, result} ->
         {:ok, query, process_rows(result, options)}
-      {:error, %Mssqlex.Error{}} = error -> error
+      {:error, %Mssqlex.Error{}} = error ->
+        if is_erlang_odbc_no_data_found_bug?(error, prepared_query) do
+          {:ok, %Query{name: "", statement: prepared_query}, %{num_rows: 0, rows: []}}
+        else
+          error
+        end
       {:error, error} -> raise error
     end
   end
@@ -48,12 +53,31 @@ defmodule MssqlEcto.Connection do
               IO.inspect params
     case DBConnection.prepare_execute(conn, query, params, options) do
       {:ok, _query, result} -> {:ok, process_rows(result, options)}
-      {:error, %Mssqlex.Error{}} = error -> error
+      {:error, %Mssqlex.Error{}} = error ->
+        if is_erlang_odbc_no_data_found_bug?(error, query.statement) do
+          {:ok, %{num_rows: 0, rows: []}}
+        else
+          error
+        end
       {:error, error} -> raise error
     end
   end
   def execute(conn, statement, params, options) do
     execute(conn, %Query{name: "", statement: statement}, params, options)
+  end
+
+  @doc """
+    When a INSERT, UPDATE or DELETE query returns no data the erlang ODBC driver may return an
+    erroneous "No SQL-driver information available." error
+  """
+  defp is_erlang_odbc_no_data_found_bug?({:error, %Mssqlex.Error{message: "No SQL-driver information available."}} = error, statement) do
+      statement
+      |> IO.iodata_to_binary()
+      |> (fn string -> String.starts_with?(string, "INSERT") || String.starts_with?(string, "DELETE") || String.starts_with?(string, "UPDATE") end).()
+  end
+
+  defp is_erlang_odbc_no_data_found_bug?(error, _) do
+    error
   end
 
   defp process_rows(result, options) do

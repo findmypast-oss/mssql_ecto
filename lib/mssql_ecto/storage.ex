@@ -108,8 +108,7 @@ defmodule MssqlEcto.Storage do
         {:ok, pid} = Task.Supervisor.start_link
 
         task = Task.Supervisor.async_nolink(pid, fn ->
-          {:ok, conn} = Mssqlex.start_link(opts)
-
+          {:ok, conn} = DBConnection.start_link(Mssqlex.Protocol, opts)
           value = MssqlEcto.Connection.execute(conn, sql, [], opts)
           GenServer.stop(conn)
           value

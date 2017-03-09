@@ -19,6 +19,7 @@ defmodule Ecto.Integration.LockTest do
     :ok
   end
 
+  @tag :only
   test "lock for update" do
     %{id: id} = PoolRepo.insert!(%LockCounter{count: 1})
     pid = self()
