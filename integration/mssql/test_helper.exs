@@ -2,7 +2,9 @@ Logger.configure(level: :info)
 ExUnit.start exclude: [:array_type,
                        :map_type,
                        :uses_usec,
-                       :parallel_preloader]
+                       :parallel_preloader,
+                       :modify_foreign_key_on_update,
+                       :create_index_if_not_exists]
 
 # Configure Ecto for support and tests
 Application.put_env(:ecto, :primary_key_type, :id)

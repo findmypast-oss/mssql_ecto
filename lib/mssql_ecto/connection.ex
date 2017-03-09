@@ -28,7 +28,7 @@ defmodule MssqlEcto.Connection do
   def prepare_execute(conn, name, prepared_query, params, options) do
     IO.puts(IO.iodata_to_binary prepared_query)
     IO.inspect params
-    case DBConnection.prepare_execute(conn, %Query{name: name, statement: prepared_query}, params, options) do
+    case DBConnection.prepare_execute(conn, %Query{name: name, statement: prepared_query}, params, options) |> IO.inspect do
       {:ok, query, result} ->
         {:ok, query, process_rows(result, options)}
       {:error, %Mssqlex.Error{}} = error ->
@@ -70,14 +70,12 @@ defmodule MssqlEcto.Connection do
     When a INSERT, UPDATE or DELETE query returns no data the erlang ODBC driver may return an
     erroneous "No SQL-driver information available." error
   """
-  defp is_erlang_odbc_no_data_found_bug?({:error, %Mssqlex.Error{message: "No SQL-driver information available."}} = error, statement) do
-      statement
+  defp is_erlang_odbc_no_data_found_bug?({:error, error}, statement) do
+      is_dml = statement
       |> IO.iodata_to_binary()
       |> (fn string -> String.starts_with?(string, "INSERT") || String.starts_with?(string, "DELETE") || String.starts_with?(string, "UPDATE") end).()
-  end
 
-  defp is_erlang_odbc_no_data_found_bug?(error, _) do
-    error
+      is_dml and error.message == "No SQL-driver information available."
   end
 
   defp process_rows(result, options) do
@@ -301,11 +299,9 @@ defmodule MssqlEcto.Connection do
     queries
   end
 
-  # def execute_ddl({:create_if_not_exists, %Index{} = index}) do
-  #   [["DO $$ BEGIN ",
-  #     execute_ddl({:create, index}), ";",
-  #     "EXCEPTION WHEN duplicate_table THEN END; $$;"]]
-  # end
+  def execute_ddl({:create_if_not_exists, %Index{} = index}) do
+    raise("create index if not exists: not supported")
+  end
 
   def execute_ddl({command, %Index{} = index}) when command in @drops do
     if_exists = if command == :drop_if_exists, do: "IF EXISTS ", else: []
@@ -318,7 +314,7 @@ defmodule MssqlEcto.Connection do
 
   def execute_ddl({:rename, %Table{} = current_table, %Table{} = new_table}) do
     [["EXEC sp_rename ", quote_name([current_table.prefix, current_table.name], ?'),
-      ", ", quote_name(new_table.name, ?'), ", 'TABLE'"]]
+      ", ", quote_name(new_table.name, ?'), ", 'OBJECT'"]]
   end
 
   def execute_ddl({:rename, %Table{} = table, current_column, new_column}) do
@@ -408,7 +404,8 @@ defmodule MssqlEcto.Connection do
   end
 
   defp column_change(table, {:remove, name}) do
-    quote_alter([" DROP COLUMN ", quote_name(name)], table)
+    [if_do(table.primary_key, quote_alter([" DROP CONSTRAINT ", constraint_name("pk", table)], table)),
+    quote_alter([" DROP COLUMN ", quote_name(name)], table)]
   end
 
   defp modify_null(_name, opts) do

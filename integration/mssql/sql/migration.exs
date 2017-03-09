@@ -85,8 +85,8 @@ defmodule Ecto.Integration.MigrationTest do
         modify :alter_fk_user_id, references(:alter_fk_users, on_delete: :nilify_all)
       end
 
-      execute "INSERT INTO alter_fk_users (id) VALUES ('1')"
-      execute "INSERT INTO alter_fk_posts (id, alter_fk_user_id) VALUES ('1', '1')"
+      execute "INSERT INTO alter_fk_users DEFAULT VALUES"
+      execute "INSERT INTO alter_fk_posts (alter_fk_user_id) DEFAULT VALUES"
       execute "DELETE FROM alter_fk_users"
     end
 
