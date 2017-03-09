@@ -1,18 +1,7 @@
 Logger.configure(level: :info)
 ExUnit.start exclude: [:array_type,
-                       :strict_savepoint,
-                       :update_with_join,
-                       :delete_with_join,
-                       :foreign_key_constraint,
-                       :modify_column,
-                       :modify_foreign_key,
-                       :prefix,
-                       :remove_column,
-                       :rename_column,
-                       :right_join,
-                       :unique_constraint,
                        :uses_usec,
-                       :create_index_if_not_exists]
+                       :parallel_preloader]
 
 # Configure Ecto for support and tests
 Application.put_env(:ecto, :primary_key_type, :id)

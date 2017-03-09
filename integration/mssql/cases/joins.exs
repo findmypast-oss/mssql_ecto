@@ -317,7 +317,7 @@ defmodule Ecto.Integration.JoinsTest do
   end
 
   ## Nested
-  @tag skip: "known issue with multiple preloads"
+  @tag :parallel_preloader
   test "nested assoc" do
     %Post{id: pid1} = TestRepo.insert!(%Post{title: "1"})
     %Post{id: pid2} = TestRepo.insert!(%Post{title: "2"})
