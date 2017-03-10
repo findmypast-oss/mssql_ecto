@@ -91,15 +91,11 @@ defmodule Ecto.Integration.SandboxTest do
 
   test "disconnects sandbox on transaction timeouts" do
     Sandbox.checkout(TestRepo)
-
     assert capture_log(fn ->
-      catch_error(
-        TestRepo.transaction fn ->
-          :timer.sleep(1000)
-        end, timeout: 0
-      )
+      TestRepo.transaction(fn ->
+        :timer.sleep(1000)
+      end, timeout: 0)
     end) =~ "timed out"
-
     Sandbox.checkin(TestRepo)
   end
 
