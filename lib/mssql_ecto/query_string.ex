@@ -147,13 +147,13 @@ defmodule MssqlEcto.QueryString do
 
   def offset(%Query{offset: nil, limit: nil}, _sources), do: []
   def offset(%Query{offset: nil, limit: %QueryExpr{expr: expr}} = query, sources) do
-    [" OFFSET 0 FETCH NEXT ", expr(expr, sources, query), " ROWS ONLY"]
+    [" OFFSET 0 ROWS FETCH NEXT ", expr(expr, sources, query), " ROWS ONLY"]
   end
   def offset(%Query{offset: %QueryExpr{expr: offset_expr}, limit: %QueryExpr{expr: limit_expr}} = query, sources) do
-    [" OFFSET ", expr(offset_expr, sources, query), " FETCH NEXT ", expr(limit_expr, sources, query), " ROWS ONLY"]
+    [" OFFSET ", expr(offset_expr, sources, query), " ROWS FETCH NEXT ", expr(limit_expr, sources, query), " ROWS ONLY"]
   end
   def offset(%Query{offset: %QueryExpr{expr: expr}} = query, sources) do
-    [" OFFSET " | expr(expr, sources, query)]
+    [" OFFSET " , expr(expr, sources, query), " ROWS"]
   end
 
   def lock(nil), do: []
@@ -227,7 +227,12 @@ defmodule MssqlEcto.QueryString do
   end
 
   def expr({:not, _, [expr]}, sources, query) do
-    ["NOT (", expr(expr, sources, query), ?)]
+    case expr do
+      {fun, _, _} when fun in @binary_ops ->
+        ["NOT (", expr(expr, sources, query), ?)]
+      _ ->
+        ["~(", expr(expr, sources, query), ?)]
+    end
   end
 
   def expr(%Ecto.SubQuery{query: query, fields: fields}, _sources, _query) do
@@ -289,7 +294,7 @@ defmodule MssqlEcto.QueryString do
   end
 
   def expr(nil, _sources, _query),   do: "NULL"
-  def expr(true, _sources, _query),  do: "TRUE"
+  def expr(true, _sources, _query),  do: "1=1"
   def expr(false, _sources, _query), do: "FALSE"
 
   def expr(literal, _sources, _query) when is_binary(literal) do

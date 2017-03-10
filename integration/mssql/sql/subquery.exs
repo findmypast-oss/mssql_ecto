@@ -37,12 +37,12 @@ defmodule Ecto.Integration.SubQueryTest do
     TestRepo.insert!(%Post{visits: 11})
     TestRepo.insert!(%Post{visits: 13})
 
-    query = from p in Post, select: [:visits], order_by: [asc: :visits]
+    query = from p in Post, select: [:visits]
     assert [13] = TestRepo.all(from p in subquery(query), select: max(p.visits))
     query = from p in Post, select: [:visits], order_by: [asc: :visits], limit: 2
     assert [11] = TestRepo.all(from p in subquery(query), select: max(p.visits))
 
-    query = from p in Post, order_by: [asc: :visits]
+    query = from p in Post
     assert [13] = TestRepo.all(from p in subquery(query), select: max(p.visits))
     query = from p in Post, order_by: [asc: :visits], limit: 2
     assert [11] = TestRepo.all(from p in subquery(query), select: max(p.visits))
