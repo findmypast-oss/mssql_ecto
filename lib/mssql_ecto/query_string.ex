@@ -256,8 +256,8 @@ defmodule MssqlEcto.QueryString do
   end
 
   def expr({:date_add, _, [date, count, interval]}, sources, query) do
-    [?(, expr(date, sources, query), " + ",
-     interval(count, interval, sources, query) | ")"]
+    ["CAST(DATEADD(", interval, ",", expr(count, sources, query),
+      ",", expr(date, sources, query) | ") AS DATE)"]
   end
 
   def expr({fun, _, args}, sources, query) when is_atom(fun) and is_list(args) do
@@ -309,18 +309,8 @@ defmodule MssqlEcto.QueryString do
     Float.to_string(literal)
   end
 
-  def interval(count, interval, _sources, _query) when is_integer(count) do
-    ["interval '", String.Chars.Integer.to_string(count), ?\s, interval, ?\']
-  end
-
-  def interval(count, interval, _sources, _query) when is_float(count) do
-    count = :erlang.float_to_binary(count, [:compact, decimals: 16])
-    ["interval '", count, ?\s, interval, ?\']
-  end
-
   def interval(count, interval, sources, query) do
-    [?(, expr(count, sources, query), " * ",
-     interval(1, interval, sources, query), ?)]
+    [expr(count, sources, query)]
   end
 
   def op_to_binary({op, _, [_, _]} = expr, sources, query) when op in @binary_ops do

@@ -26,7 +26,7 @@ defmodule MssqlEcto.Connection do
   @spec prepare_execute(connection :: DBConnection.t, name :: String.t, prepared, params :: [term], options :: Keyword.t) ::
   {:ok, query :: map, term} | {:error, Exception.t}
   def prepare_execute(conn, name, prepared_query, params, options) do
-    case DBConnection.prepare_execute(conn, %Query{name: name, statement: prepared_query}, params, options) do
+    case DBConnection.prepare_execute(conn, %Query{name: name, statement: prepared_query |> IO.inspect}, params |> IO.inspect, options) do
       {:ok, query, result} ->
         {:ok, query, process_rows(result, options)}
       {:error, %Mssqlex.Error{}} = error ->
@@ -47,8 +47,8 @@ defmodule MssqlEcto.Connection do
   @spec execute(connection :: DBConnection.t, prepared_query :: cached, params :: [term], options :: Keyword.t) ::
             {:ok, term} | {:error | :reset, Exception.t}
   def execute(conn, %Query{} = query, params, options) do
-              IO.puts(IO.iodata_to_binary query.statement)
-              IO.inspect params
+    # IO.puts(IO.iodata_to_binary query.statement)
+    # IO.inspect params
     case DBConnection.prepare_execute(conn, query, params, options) do
       {:ok, _query, result} -> {:ok, process_rows(result, options)}
       {:error, %Mssqlex.Error{}} = error ->
@@ -77,7 +77,7 @@ defmodule MssqlEcto.Connection do
   end
 
   defp process_rows(result, options) do
-    #IO.inspect options[:decode_mapper]
+    # IO.inspect options[:decode_mapper]
     decoder = options[:decode_mapper] || fn x -> x end
     Map.update!(result, :rows, fn row ->
       unless is_nil(row), do: Enum.map(row, decoder)
