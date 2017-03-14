@@ -6,8 +6,11 @@ defmodule MssqlEcto.Type do
     {:ok, to_string(value)}
   end
 
+  def encode(value, :binary_id) when is_binary(value) do
+    Ecto.UUID.load(value)
+  end
+
   def encode(value, type) do
-    IO.inspect {value, type}
     {:ok, value}
   end
 
@@ -34,7 +37,6 @@ defmodule MssqlEcto.Type do
   end
 
   def decode(value, type) do
-    IO.inspect {value, type}
     {:ok, value}
   end
 

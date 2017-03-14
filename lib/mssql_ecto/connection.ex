@@ -26,9 +26,7 @@ defmodule MssqlEcto.Connection do
   @spec prepare_execute(connection :: DBConnection.t, name :: String.t, prepared, params :: [term], options :: Keyword.t) ::
   {:ok, query :: map, term} | {:error, Exception.t}
   def prepare_execute(conn, name, prepared_query, params, options) do
-    IO.puts(IO.iodata_to_binary prepared_query)
-    IO.inspect params
-    case DBConnection.prepare_execute(conn, %Query{name: name, statement: prepared_query}, params, options) |> IO.inspect do
+    case DBConnection.prepare_execute(conn, %Query{name: name, statement: prepared_query}, params, options) do
       {:ok, query, result} ->
         {:ok, query, process_rows(result, options)}
       {:error, %Mssqlex.Error{}} = error ->

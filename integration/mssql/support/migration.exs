@@ -59,7 +59,7 @@ defmodule Ecto.Integration.Migration do
       add :uuid, :uuid
     end
 
-    create unique_index(:customs, [:uuid])
+    create unique_index(:customs, [:uuid], where: "uuid IS NOT NULL" )
 
     create table(:customs_customs, primary_key: false) do
       add :custom_id1, references(:customs, column: :bid, type: :binary_id)
