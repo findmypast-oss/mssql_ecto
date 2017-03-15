@@ -10,6 +10,17 @@ defmodule MssqlEcto.Type do
     Ecto.UUID.load(value)
   end
 
+  def encode(value, :decimal) do
+    try do
+      value
+      |> Decimal.to_integer
+      |> decode(:integer) 
+    rescue
+      e in FunctionClauseError ->
+        {:ok, value}
+    end
+  end
+
   def encode(value, type) do
     {:ok, value}
   end

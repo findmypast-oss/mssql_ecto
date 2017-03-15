@@ -13,7 +13,6 @@ defmodule Ecto.Integration.IntervalTest do
     :ok
   end
 
-  @tag :only
   test "date_add with year" do
     dec = Decimal.new(1)
     assert ["2015-01-01"] = TestRepo.all(from p in Post, select: date_add(p.posted, 1, "year"))
@@ -50,6 +49,7 @@ defmodule Ecto.Integration.IntervalTest do
     assert ["2014-01-06"] = TestRepo.all(from p in Post, select: date_add(p.posted, ^dec, "day"))
   end
 
+  @tag :not_supported_by_sql_server
   test "date_add with hour" do
     dec = Decimal.new(48)
     assert ["2014-01-03"] = TestRepo.all(from p in Post, select: date_add(p.posted, 48, "hour"))
@@ -59,6 +59,7 @@ defmodule Ecto.Integration.IntervalTest do
     assert ["2014-01-03"] = TestRepo.all(from p in Post, select: date_add(p.posted, ^dec, "hour"))
   end
 
+  @tag :only
   test "date_add with dynamic" do
     posted = @posted
     assert ["2015-01-01"]  = TestRepo.all(from p in Post, select: date_add(^posted, ^1, ^"year"))
