@@ -8,6 +8,7 @@ defmodule MssqlEcto.Helpers do
   end
 
   def quote_qualified_name(name, sources, ix) do
+    IO.inspect { name, sources, ix }
     {_, source, _} = elem(sources, ix)
     [source, ?. | quote_name(name)]
   end

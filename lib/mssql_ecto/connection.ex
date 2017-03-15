@@ -26,9 +26,12 @@ defmodule MssqlEcto.Connection do
   @spec prepare_execute(connection :: DBConnection.t, name :: String.t, prepared, params :: [term], options :: Keyword.t) ::
   {:ok, query :: map, term} | {:error, Exception.t}
   def prepare_execute(conn, name, prepared_query, params, options) do
-    case DBConnection.prepare_execute(conn, %Query{name: name, statement: prepared_query |> IO.inspect}, params |> IO.inspect, options) do
+    statement = sanitise_query(prepared_query) |> IO.inspect
+    ordered_params = order_params(prepared_query, params) |> IO.inspect
+
+    case DBConnection.prepare_execute(conn, %Query{name: name, statement: statement}, ordered_params, options) do
       {:ok, query, result} ->
-        {:ok, query, process_rows(result, options)}
+        {:ok, %{query | statement: prepared_query}, process_rows(result, options)}
       {:error, %Mssqlex.Error{}} = error ->
         if is_erlang_odbc_no_data_found_bug?(error, prepared_query) do
           {:ok, %Query{name: "", statement: prepared_query}, %{num_rows: 0, rows: []}}
@@ -47,9 +50,16 @@ defmodule MssqlEcto.Connection do
   @spec execute(connection :: DBConnection.t, prepared_query :: cached, params :: [term], options :: Keyword.t) ::
             {:ok, term} | {:error | :reset, Exception.t}
   def execute(conn, %Query{} = query, params, options) do
-    # IO.puts(IO.iodata_to_binary query.statement)
-    # IO.inspect params
-    case DBConnection.prepare_execute(conn, query, params, options) do
+    ordered_params =
+      query.statement
+      |> IO.iodata_to_binary
+      |> order_params(params)
+      |> IO.inspect
+
+    sanitised_query = sanitise_query(query.statement) |> IO.inspect
+    query = Map.put(query, :statement, sanitised_query)
+
+    case DBConnection.prepare_execute(conn, query, ordered_params, options) do
       {:ok, _query, result} -> {:ok, process_rows(result, options)}
       {:error, %Mssqlex.Error{}} = error ->
         if is_erlang_odbc_no_data_found_bug?(error, query.statement) do
@@ -62,6 +72,40 @@ defmodule MssqlEcto.Connection do
   end
   def execute(conn, statement, params, options) do
     execute(conn, %Query{name: "", statement: statement}, params, options)
+  end
+
+  def order_params(query, params) do
+    sanitised = Regex.replace(~r/(([^\\]|^))["'].*?[^\\]['"]/, IO.iodata_to_binary(query), "\\g{1}")
+
+    ordering =
+      Regex.scan(~r/\?([0-9]+)/, sanitised)
+      |> Enum.map( fn [_, x] -> String.to_integer(x) end)
+
+    if length(ordering) != length(params) do
+      IO.puts "\n\n\n FAILY MCWHALE\n\n\n"
+      IO.puts "QUERY"
+      IO.inspect query
+      IO.puts "\nPARAMS"
+      IO.inspect params
+      raise "\nError: number of params received (#{length(params)}) does not match expected (#{length(ordering)})"
+    end
+
+    ordered_params =
+      ordering
+      |> Enum.reduce([], fn ix, acc -> [Enum.at(params, ix - 1) | acc] end)
+      |> Enum.reverse
+
+    case ordered_params do
+      []  -> params
+      _   -> ordered_params
+    end
+  end
+
+  def sanitise_query(query) do
+    query
+    |> IO.inspect
+    |> IO.iodata_to_binary
+    |> String.replace(~r/(\?([0-9]+))(?=(?:[^\\"']|[\\"'][^\\"']*[\\"'])*$)/, "?")
   end
 
   @doc """
@@ -155,7 +199,7 @@ defmodule MssqlEcto.Connection do
     {from, name} = get_source(query, sources, 0, from)
 
     join = QueryString.join(query, sources)
-    where = QueryString.where(query, sources)
+    where = QueryString.where(query, sources) |> IO.inspect
 
     IO.iodata_to_binary(["DELETE ", name, " FROM ", from, " AS ", name, join, where | returning(query, sources, "DELETED")])
   end
@@ -185,7 +229,7 @@ defmodule MssqlEcto.Connection do
       IO.iodata_to_binary(["INSERT INTO ", quote_table(prefix, table),
                            " (", fields, ")",
                            returning(returning, "INSERTED"), " VALUES ",
-                           insert_all(included_rows),
+                           insert_all(included_rows, 1),
                            on_conflict(on_conflict, included_fields)])
     end
   end
@@ -197,14 +241,31 @@ defmodule MssqlEcto.Connection do
     error!(nil, ":on_conflict options other than :raise are not yet supported")
   end
 
-  defp insert_all(rows) do
-    intersperse_map(rows, ?,, fn row ->
-      [?(, intersperse_map(row, ?,, &insert_all_value/1), ?)]
+  defp insert_all(rows, counter) do
+      intersperse_reduce(rows, ?,, counter, fn row, counter ->
+        {row, counter} = insert_each(row, counter)
+        {[?(, row, ?)], counter}
+      end)
+      |> elem(0)
+    end
+
+  defp insert_each(values, counter) do
+    intersperse_reduce(values, ?,, counter, fn
+      nil, counter ->
+        {"DEFAULT", counter}
+      _, counter ->
+        {[?? | Integer.to_string(counter)], counter + 1}
     end)
   end
 
-  defp insert_all_value(nil), do: "DEFAULT"
-  defp insert_all_value(_),   do: '?'
+  # defp insert_all(rows) do
+  #   intersperse_map(rows, ?,, fn row ->
+  #     [?(, intersperse_map(row, ?,, &insert_all_value/1), ?)]
+  #   end)
+  # end
+  #
+  # defp insert_all_value(nil), do: "DEFAULT"
+  # defp insert_all_value(_),   do: '?'
 
   defp returning(%Ecto.Query{select: nil}, _sources, _),
     do: []
@@ -223,12 +284,12 @@ defmodule MssqlEcto.Connection do
   @spec update(prefix :: String.t, table :: String.t, fields :: [atom],
                    filters :: [atom], returning :: [atom]) :: String.t
   def update(prefix, table, fields, filters, returning) do
-    fields = intersperse_map(fields, ", ", fn field ->
-      [quote_name(field), " = ?"]
+    {fields, count} = intersperse_reduce(fields, ", ", 1, fn field, acc ->
+      {[quote_name(field), " = ?" | Integer.to_string(acc)], acc + 1}
     end)
 
-    filters = intersperse_map(filters, " AND ", fn field ->
-      [quote_name(field), " = ?"]
+    {filters, _count} = intersperse_reduce(filters, " AND ", count, fn field, acc ->
+      {[quote_name(field), " = ?" | Integer.to_string(acc)], acc + 1}
     end)
 
   IO.iodata_to_binary(["UPDATE ", quote_table(prefix, table), " SET ",
@@ -241,8 +302,8 @@ defmodule MssqlEcto.Connection do
   @spec delete(prefix :: String.t, table :: String.t,
                    filters :: [atom], returning :: [atom]) :: String.t
   def delete(prefix, table, filters, returning) do
-    filters = intersperse_map(filters, " AND ", fn field ->
-      [quote_name(field), " = ?"]
+    {filters, _} = intersperse_reduce(filters, " AND ", 1, fn field, acc ->
+      {[quote_name(field), " = ?" , Integer.to_string(acc)], acc + 1}
     end)
 
     IO.iodata_to_binary(["DELETE FROM ", quote_table(prefix, table), " WHERE ",

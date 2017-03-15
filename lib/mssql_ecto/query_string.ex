@@ -182,11 +182,11 @@ defmodule MssqlEcto.QueryString do
   end
 
   def expr({:^, [], [ix]}, _sources, _query) do
-    [??]
+    [?? , Integer.to_string(ix + 1)]
   end
 
   def expr({{:., _, [{:&, _, [idx]}, field]}, _, []}, sources, _query) when is_atom(field) do
-    Helpers.quote_qualified_name(field, sources, idx)
+    Helpers.quote_qualified_name(field, sources, idx) |> IO.inspect
   end
 
   def expr({:&, _, [idx, fields, _counter]}, sources, query) do
@@ -213,8 +213,11 @@ defmodule MssqlEcto.QueryString do
     "false"
   end
 
-  def expr({:in, _, [left, {:^, _, [_, length]}]}, sources, query) do
-    args = Enum.intersperse(List.duplicate(??, length), ?,)
+  def expr({:in, _, [left, {:^, _, [ix, length]}]}, sources, query) do
+    # args = Enum.intersperse(List.duplicate(??, length), ?,)
+    args =
+        Enum.map(ix+1..ix+length, fn (i) -> [??, to_string(i)] end)
+        |> Enum.intersperse(?,)
     [expr(left, sources, query), " IN (", args, ?)]
   end
 

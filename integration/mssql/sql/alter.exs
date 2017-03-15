@@ -38,6 +38,7 @@ defmodule Ecto.Integration.AlterTest do
   import Ecto.Query, only: [from: 1, from: 2]
   import Ecto.Migrator, only: [up: 4, down: 4]
 
+  @tag :only
   test "reset cache on returning query after alter column type" do
     values = from v in "alter_col_type", select: v.value
 
