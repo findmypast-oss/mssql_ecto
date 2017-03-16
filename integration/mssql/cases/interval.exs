@@ -60,7 +60,6 @@ defmodule Ecto.Integration.IntervalTest do
     assert ["2014-01-03"] = TestRepo.all(from p in Post, select: date_add(p.posted, ^dec, "hour"))
   end
 
-  @tag :only
   test "date_add with dynamic" do
     posted = @posted
     assert ["2015-01-01"]  = TestRepo.all(from p in Post, select: date_add(^posted, ^1, ^"year"))

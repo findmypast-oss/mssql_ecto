@@ -14,7 +14,7 @@ defmodule MssqlEcto.Type do
     try do
       value
       |> Decimal.to_integer
-      |> decode(:integer) 
+      |> decode(:integer)
     rescue
       e in FunctionClauseError ->
         {:ok, value}
@@ -45,6 +45,11 @@ defmodule MssqlEcto.Type do
   def decode({date, {h, m, s}}, type)
   when type in [:utc_datetime, :naive_datetime] do
     {:ok, {date, {h, m, s, 0}}}
+  end
+
+  def decode(value, type)
+  when type in [:date] and is_binary(value) do
+    Ecto.Date.cast!(value) |> Ecto.Date.dump
   end
 
   def decode(value, type) do

@@ -2,6 +2,7 @@ Logger.configure(level: :info)
 ExUnit.start exclude: [:array_type,
                        :map_type,
                        :uses_usec,
+                       :uses_msec,
                        :parallel_preloader,
                        :modify_foreign_key_on_update,
                        :create_index_if_not_exists,

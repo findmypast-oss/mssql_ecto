@@ -254,8 +254,8 @@ defmodule MssqlEcto.QueryString do
   end
 
   def expr({:datetime_add, _, [datetime, count, interval]}, sources, query) do
-    [?(, expr(datetime, sources, query), " + ",
-     interval(count, interval, sources, query) | ")"]
+    ["CAST(DATEADD(", interval, ",", expr(count, sources, query),
+      ",", expr(datetime, sources, query) | ") AS DATETIME2)"]
   end
 
   def expr({:date_add, _, [date, count, interval]}, sources, query) do
