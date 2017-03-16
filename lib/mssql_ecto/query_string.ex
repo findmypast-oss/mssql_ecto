@@ -22,7 +22,7 @@ defmodule MssqlEcto.QueryString do
   end
 
   def select_fields([], _sources, _query),
-    do: "TRUE"
+    do: "'TRUE'"
   def select_fields(fields, sources, query) do
     Helpers.intersperse_map(fields, ", ", fn
       {key, value} ->
@@ -186,7 +186,7 @@ defmodule MssqlEcto.QueryString do
   end
 
   def expr({{:., _, [{:&, _, [idx]}, field]}, _, []}, sources, _query) when is_atom(field) do
-    Helpers.quote_qualified_name(field, sources, idx) |> IO.inspect
+    Helpers.quote_qualified_name(field, sources, idx)
   end
 
   def expr({:&, _, [idx, fields, _counter]}, sources, query) do

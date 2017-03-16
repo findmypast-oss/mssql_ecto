@@ -46,25 +46,25 @@ defmodule MssqlEcto.JoinTest do
   test "join" do
     query = Schema |> join(:inner, [p], q in Schema2, p.x == q.z) |> select([], true) |> normalize
     assert SQL.all(query) ==
-           ~s{SELECT TRUE FROM "schema" AS s0 INNER JOIN "schema2" AS s1 ON s0."x" = s1."z"}
+           ~s{SELECT 'TRUE' FROM "schema" AS s0 INNER JOIN "schema2" AS s1 ON s0."x" = s1."z"}
 
     query = Schema |> join(:inner, [p], q in Schema2, p.x == q.z)
                   |> join(:inner, [], Schema, true) |> select([], true) |> normalize
     assert SQL.all(query) ==
-           ~s{SELECT TRUE FROM "schema" AS s0 INNER JOIN "schema2" AS s1 ON s0."x" = s1."z" } <>
+           ~s{SELECT 'TRUE' FROM "schema" AS s0 INNER JOIN "schema2" AS s1 ON s0."x" = s1."z" } <>
            ~s{INNER JOIN "schema" AS s2 ON 1=1}
   end
 
   test "join with nothing bound" do
     query = Schema |> join(:inner, [], q in Schema2, q.z == q.z) |> select([], true) |> normalize
     assert SQL.all(query) ==
-           ~s{SELECT TRUE FROM "schema" AS s0 INNER JOIN "schema2" AS s1 ON s1."z" = s1."z"}
+           ~s{SELECT 'TRUE' FROM "schema" AS s0 INNER JOIN "schema2" AS s1 ON s1."z" = s1."z"}
   end
 
   test "join without schema" do
     query = "posts" |> join(:inner, [p], q in "comments", p.x == q.z) |> select([], true) |> normalize
     assert SQL.all(query) ==
-           ~s{SELECT TRUE FROM "posts" AS p0 INNER JOIN "comments" AS c1 ON p0."x" = c1."z"}
+           ~s{SELECT 'TRUE' FROM "posts" AS p0 INNER JOIN "comments" AS c1 ON p0."x" = c1."z"}
   end
 
   test "join with subquery" do
@@ -84,7 +84,7 @@ defmodule MssqlEcto.JoinTest do
   test "join with prefix" do
     query = Schema |> join(:inner, [p], q in Schema2, p.x == q.z) |> select([], true) |> normalize
     assert SQL.all(%{query | prefix: "prefix"}) ==
-           ~s{SELECT TRUE FROM "prefix"."schema" AS s0 INNER JOIN "prefix"."schema2" AS s1 ON s0."x" = s1."z"}
+           ~s{SELECT 'TRUE' FROM "prefix"."schema" AS s0 INNER JOIN "prefix"."schema2" AS s1 ON s0."x" = s1."z"}
   end
 
   test "join with fragment" do
@@ -124,19 +124,19 @@ defmodule MssqlEcto.JoinTest do
   test "association join belongs_to" do
     query = Schema2 |> join(:inner, [c], p in assoc(c, :post)) |> select([], true) |> normalize
     assert SQL.all(query) ==
-           "SELECT TRUE FROM \"schema2\" AS s0 INNER JOIN \"schema\" AS s1 ON s1.\"x\" = s0.\"z\""
+           "SELECT 'TRUE' FROM \"schema2\" AS s0 INNER JOIN \"schema\" AS s1 ON s1.\"x\" = s0.\"z\""
   end
 
   test "association join has_many" do
     query = Schema |> join(:inner, [p], c in assoc(p, :comments)) |> select([], true) |> normalize
     assert SQL.all(query) ==
-           "SELECT TRUE FROM \"schema\" AS s0 INNER JOIN \"schema2\" AS s1 ON s1.\"z\" = s0.\"x\""
+           "SELECT 'TRUE' FROM \"schema\" AS s0 INNER JOIN \"schema2\" AS s1 ON s1.\"z\" = s0.\"x\""
   end
 
   test "association join has_one" do
     query = Schema |> join(:inner, [p], pp in assoc(p, :permalink)) |> select([], true) |> normalize
     assert SQL.all(query) ==
-           "SELECT TRUE FROM \"schema\" AS s0 INNER JOIN \"schema3\" AS s1 ON s1.\"id\" = s0.\"y\""
+           "SELECT 'TRUE' FROM \"schema\" AS s0 INNER JOIN \"schema3\" AS s1 ON s1.\"id\" = s0.\"y\""
   end
 
   test "join produces correct bindings" do

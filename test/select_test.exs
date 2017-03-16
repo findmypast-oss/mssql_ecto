@@ -148,27 +148,27 @@ defmodule MssqlEcto.SelectTest do
 
   test "limit and offset" do
     query = Schema |> limit([r], 3) |> select([], true) |> normalize
-    assert SQL.all(query) == ~s{SELECT TRUE FROM "schema" AS s0 OFFSET 0 ROWS FETCH NEXT 3 ROWS ONLY}
+    assert SQL.all(query) == ~s{SELECT 'TRUE' FROM "schema" AS s0 OFFSET 0 ROWS FETCH NEXT 3 ROWS ONLY}
 
     query = Schema |> offset([r], 5) |> select([], true) |> normalize
-    assert SQL.all(query) == ~s{SELECT TRUE FROM "schema" AS s0 OFFSET 5 ROWS}
+    assert SQL.all(query) == ~s{SELECT 'TRUE' FROM "schema" AS s0 OFFSET 5 ROWS}
 
     query = Schema |> offset([r], 5) |> limit([r], 3) |> select([], true) |> normalize
-    assert SQL.all(query) == ~s{SELECT TRUE FROM "schema" AS s0 OFFSET 5 ROWS FETCH NEXT 3 ROWS ONLY}
+    assert SQL.all(query) == ~s{SELECT 'TRUE' FROM "schema" AS s0 OFFSET 5 ROWS FETCH NEXT 3 ROWS ONLY}
   end
 
   @tag skip: "Not yet supported"
   test "lock" do
     query = Schema |> lock("FOR SHARE NOWAIT") |> select([], true) |> normalize
-    assert SQL.all(query) == ~s{SELECT TRUE FROM "schema" AS s0 FOR SHARE NOWAIT}
+    assert SQL.all(query) == ~s{SELECT 'TRUE' FROM "schema" AS s0 FOR SHARE NOWAIT}
   end
 
   test "string escape" do
     query = "schema" |> where(foo: "'\\  ") |> select([], true) |> normalize
-    assert SQL.all(query) == ~s{SELECT TRUE FROM \"schema\" AS s0 WHERE (s0.\"foo\" = '''\\  ')}
+    assert SQL.all(query) == ~s{SELECT 'TRUE' FROM \"schema\" AS s0 WHERE (s0.\"foo\" = '''\\  ')}
 
     query = "schema" |> where(foo: "'") |> select([], true) |> normalize
-    assert SQL.all(query) == ~s{SELECT TRUE FROM "schema" AS s0 WHERE (s0."foo" = '''')}
+    assert SQL.all(query) == ~s{SELECT 'TRUE' FROM "schema" AS s0 WHERE (s0."foo" = '''')}
   end
 
   test "binary ops" do
@@ -218,22 +218,22 @@ defmodule MssqlEcto.SelectTest do
 
   test "literals" do
     query = "schema" |> where(foo: true) |> select([], true) |> normalize
-    assert SQL.all(query) == ~s{SELECT TRUE FROM "schema" AS s0 WHERE (s0."foo" = 1=1)}
+    assert SQL.all(query) == ~s{SELECT 'TRUE' FROM "schema" AS s0 WHERE (s0."foo" = 1=1)}
 
     query = "schema" |> where(foo: false) |> select([], true) |> normalize
-    assert SQL.all(query) == ~s{SELECT TRUE FROM "schema" AS s0 WHERE (s0."foo" = 0=1)}
+    assert SQL.all(query) == ~s{SELECT 'TRUE' FROM "schema" AS s0 WHERE (s0."foo" = 0=1)}
 
     query = "schema" |> where(foo: "abc") |> select([], true) |> normalize
-    assert SQL.all(query) == ~s{SELECT TRUE FROM "schema" AS s0 WHERE (s0."foo" = 'abc')}
+    assert SQL.all(query) == ~s{SELECT 'TRUE' FROM "schema" AS s0 WHERE (s0."foo" = 'abc')}
 
     query = "schema" |> where(foo: <<0,?a,?b,?c>>) |> select([], true) |> normalize
-    assert SQL.all(query) == ~s{SELECT TRUE FROM "schema" AS s0 WHERE (s0."foo" = 0x00616263)}
+    assert SQL.all(query) == ~s{SELECT 'TRUE' FROM "schema" AS s0 WHERE (s0."foo" = 0x00616263)}
 
     query = "schema" |> where(foo: 123) |> select([], true) |> normalize
-    assert SQL.all(query) == ~s{SELECT TRUE FROM "schema" AS s0 WHERE (s0."foo" = 123)}
+    assert SQL.all(query) == ~s{SELECT 'TRUE' FROM "schema" AS s0 WHERE (s0."foo" = 123)}
 
     query = "schema" |> where(foo: 123.0) |> select([], true) |> normalize
-    assert SQL.all(query) == ~s{SELECT TRUE FROM "schema" AS s0 WHERE (s0."foo" = 123.0)}
+    assert SQL.all(query) == ~s{SELECT 'TRUE' FROM "schema" AS s0 WHERE (s0."foo" = 123.0)}
   end
 
   test "tagged type" do
@@ -281,18 +281,18 @@ defmodule MssqlEcto.SelectTest do
 
   test "having" do
     query = Schema |> having([p], p.x == p.x) |> select([], true) |> normalize
-    assert SQL.all(query) == ~s{SELECT TRUE FROM "schema" AS s0 HAVING (s0."x" = s0."x")}
+    assert SQL.all(query) == ~s{SELECT 'TRUE' FROM "schema" AS s0 HAVING (s0."x" = s0."x")}
 
     query = Schema |> having([p], p.x == p.x) |> having([p], p.y == p.y) |> select([], true) |> normalize
-    assert SQL.all(query) == ~s{SELECT TRUE FROM "schema" AS s0 HAVING (s0."x" = s0."x") AND (s0."y" = s0."y")}
+    assert SQL.all(query) == ~s{SELECT 'TRUE' FROM "schema" AS s0 HAVING (s0."x" = s0."x") AND (s0."y" = s0."y")}
   end
 
   test "or_having" do
     query = Schema |> or_having([p], p.x == p.x) |> select([], true) |> normalize
-    assert SQL.all(query) == ~s{SELECT TRUE FROM "schema" AS s0 HAVING (s0."x" = s0."x")}
+    assert SQL.all(query) == ~s{SELECT 'TRUE' FROM "schema" AS s0 HAVING (s0."x" = s0."x")}
 
     query = Schema |> or_having([p], p.x == p.x) |> or_having([p], p.y == p.y) |> select([], true) |> normalize
-    assert SQL.all(query) == ~s{SELECT TRUE FROM "schema" AS s0 HAVING (s0."x" = s0."x") OR (s0."y" = s0."y")}
+    assert SQL.all(query) == ~s{SELECT 'TRUE' FROM "schema" AS s0 HAVING (s0."x" = s0."x") OR (s0."y" = s0."y")}
   end
 
   test "group by" do
@@ -351,7 +351,7 @@ defmodule MssqlEcto.SelectTest do
         select: true)
 
     result =
-      "SELECT TRUE FROM \"schema\" AS s0 " <>
+      "SELECT 'TRUE' FROM \"schema\" AS s0 " <>
       "WHERE (extract(?1 from s0.\"start_time\") = CAST(?2 AS int)) " <>
       "AND (extract(?3 from s0.\"start_time\") = CAST(?4 AS int))"
 
@@ -365,7 +365,7 @@ defmodule MssqlEcto.SelectTest do
         select: true)
 
     result =
-      "SELECT TRUE FROM \"schema\" AS s0 " <>
+      "SELECT 'TRUE' FROM \"schema\" AS s0 " <>
       "WHERE (s0.\"start_time\" = \"query?\")"
 
     assert SQL.all(query) == String.trim(result)

@@ -28,8 +28,16 @@ defmodule MssqlEcto.Type do
   def decode(value, type)
   when type in @int_types and is_binary(value) do
     case Integer.parse(value) do
-      {int, _} -> {:ok, int}
-      :error -> {:error, "Not an integer id"}
+      {int, _}  -> {:ok, int}
+      :error    -> {:error, "Not an integer id"}
+    end
+  end
+
+  def decode(value, type)
+  when type in [:float] do
+    cond do
+      Decimal.decimal?(value) -> {:ok, Decimal.to_float(value)}
+      true                    -> {:ok, value}
     end
   end
 
