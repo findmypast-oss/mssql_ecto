@@ -1,9 +1,9 @@
 # MssqlEcto
 
-[![Build Status](https://travis-ci.org/findmypast-oss/mssql_ecto.svg?branch=master)](https://travis-ci.org/findmypast-oss/mssqlex)
-[![Coverage Status](https://coveralls.io/repos/github/findmypast-oss/mssql_ecto/badge.svg)](https://coveralls.io/github/findmypast-oss/mssqlex)
-[![Inline docs](http://inch-ci.org/github/findmypast-oss/mssql_ecto.svg?branch=master)](http://inch-ci.org/github/findmypast-oss/mssqlex)
-[![Hex.pm](https://img.shields.io/hexpm/v/mssql_ecto.svg)](https://hex.pm/packages/mssqlex)
+[![Build Status](https://travis-ci.org/findmypast-oss/mssql_ecto.svg?branch=master)](https://travis-ci.org/findmypast-oss/mssql_ecto)
+[![Coverage Status](https://coveralls.io/repos/github/findmypast-oss/mssql_ecto/badge.svg)](https://coveralls.io/github/findmypast-oss/mssql_ecto)
+[![Inline docs](http://inch-ci.org/github/findmypast-oss/mssql_ecto.svg?branch=master)](http://inch-ci.org/github/findmypast-oss/mssql_ecto)
+[![Hex.pm](https://img.shields.io/hexpm/v/mssql_ecto.svg)](https://hex.pm/packages/mssql_ecto)
 
 **TODO: Add description**
 
