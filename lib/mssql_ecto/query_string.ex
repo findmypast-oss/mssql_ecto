@@ -298,7 +298,7 @@ defmodule MssqlEcto.QueryString do
 
   def expr(nil, _sources, _query),   do: "NULL"
   def expr(true, _sources, _query),  do: "1=1"
-  def expr(false, _sources, _query), do: "FALSE"
+  def expr(false, _sources, _query), do: "0=1"
 
   def expr(literal, _sources, _query) when is_binary(literal) do
     [?\', Helpers.escape_string(literal), ?\']

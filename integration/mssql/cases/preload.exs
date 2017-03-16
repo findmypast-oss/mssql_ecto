@@ -315,7 +315,7 @@ defmodule Ecto.Integration.PreloadTest do
 
     # With custom select
     assert [pe3, pe1, pe2] = TestRepo.preload([p3, p1, p2],
-                                              comments: from(c in Comment, select: c.id))
+                                              comments: from(c in Comment, select: c.id, order_by: c.id))
     assert [^cid1, ^cid2] = pe1.comments
     assert [^cid3, ^cid4] = pe2.comments
     assert [] = pe3.comments

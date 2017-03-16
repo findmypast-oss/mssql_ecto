@@ -221,7 +221,7 @@ defmodule MssqlEcto.SelectTest do
     assert SQL.all(query) == ~s{SELECT TRUE FROM "schema" AS s0 WHERE (s0."foo" = 1=1)}
 
     query = "schema" |> where(foo: false) |> select([], true) |> normalize
-    assert SQL.all(query) == ~s{SELECT TRUE FROM "schema" AS s0 WHERE (s0."foo" = FALSE)}
+    assert SQL.all(query) == ~s{SELECT TRUE FROM "schema" AS s0 WHERE (s0."foo" = 0=1)}
 
     query = "schema" |> where(foo: "abc") |> select([], true) |> normalize
     assert SQL.all(query) == ~s{SELECT TRUE FROM "schema" AS s0 WHERE (s0."foo" = 'abc')}
