@@ -11,12 +11,12 @@ defmodule MssqlEcto.MigrationTest do
 
   test "rename table" do
     rename = {:rename, table(:posts), table(:new_posts)}
-    assert execute_ddl(rename) == [~s|EXEC sp_rename 'posts', 'new_posts', 'TABLE'|]
+    assert execute_ddl(rename) == [~s|EXEC sp_rename 'posts', 'new_posts', 'OBJECT'|]
   end
 
   test "rename table with prefix" do
     rename = {:rename, table(:posts, prefix: :foo), table(:new_posts, prefix: :foo)}
-    assert execute_ddl(rename) == [~s|EXEC sp_rename 'foo.posts', 'new_posts', 'TABLE'|]
+    assert execute_ddl(rename) == [~s|EXEC sp_rename 'foo.posts', 'new_posts', 'OBJECT'|]
   end
 
   test "rename column" do

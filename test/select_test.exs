@@ -148,13 +148,13 @@ defmodule MssqlEcto.SelectTest do
 
   test "limit and offset" do
     query = Schema |> limit([r], 3) |> select([], true) |> normalize
-    assert SQL.all(query) == ~s{SELECT TRUE FROM "schema" AS s0 OFFSET 0 FETCH NEXT 3 ROWS ONLY}
+    assert SQL.all(query) == ~s{SELECT TRUE FROM "schema" AS s0 OFFSET 0 ROWS FETCH NEXT 3 ROWS ONLY}
 
     query = Schema |> offset([r], 5) |> select([], true) |> normalize
-    assert SQL.all(query) == ~s{SELECT TRUE FROM "schema" AS s0 OFFSET 5}
+    assert SQL.all(query) == ~s{SELECT TRUE FROM "schema" AS s0 OFFSET 5 ROWS}
 
     query = Schema |> offset([r], 5) |> limit([r], 3) |> select([], true) |> normalize
-    assert SQL.all(query) == ~s{SELECT TRUE FROM "schema" AS s0 OFFSET 5 FETCH NEXT 3 ROWS ONLY}
+    assert SQL.all(query) == ~s{SELECT TRUE FROM "schema" AS s0 OFFSET 5 ROWS FETCH NEXT 3 ROWS ONLY}
   end
 
   @tag skip: "Not yet supported"
@@ -196,7 +196,7 @@ defmodule MssqlEcto.SelectTest do
     assert SQL.all(query) == ~s{SELECT s0."x" IS NULL FROM "schema" AS s0}
 
     query = Schema |> select([r], not is_nil(r.x)) |> normalize
-    assert SQL.all(query) == ~s{SELECT NOT (s0."x" IS NULL) FROM "schema" AS s0}
+    assert SQL.all(query) == ~s{SELECT ~(s0."x" IS NULL) FROM "schema" AS s0}
   end
 
   test "fragments" do
@@ -208,7 +208,7 @@ defmodule MssqlEcto.SelectTest do
 
     value = 13
     query = Schema |> select([r], fragment("downcase(?, ?)", r.x, ^value)) |> normalize
-    assert SQL.all(query) == ~s{SELECT downcase(s0."x", ?) FROM "schema" AS s0}
+    assert SQL.all(query) == ~s{SELECT downcase(s0."x", ?1) FROM "schema" AS s0}
 
     query = Schema |> select([], fragment(title: 2)) |> normalize
     assert_raise Ecto.QueryError, fn ->
@@ -218,7 +218,7 @@ defmodule MssqlEcto.SelectTest do
 
   test "literals" do
     query = "schema" |> where(foo: true) |> select([], true) |> normalize
-    assert SQL.all(query) == ~s{SELECT TRUE FROM "schema" AS s0 WHERE (s0."foo" = TRUE)}
+    assert SQL.all(query) == ~s{SELECT TRUE FROM "schema" AS s0 WHERE (s0."foo" = 1=1)}
 
     query = "schema" |> where(foo: false) |> select([], true) |> normalize
     assert SQL.all(query) == ~s{SELECT TRUE FROM "schema" AS s0 WHERE (s0."foo" = FALSE)}
@@ -238,16 +238,16 @@ defmodule MssqlEcto.SelectTest do
 
   test "tagged type" do
     query = Schema |> select([], type(^"601d74e4-a8d3-4b6e-8365-eddb4c893327", Ecto.UUID)) |> normalize
-    assert SQL.all(query) == ~s{SELECT CAST(? AS char(36)) FROM "schema" AS s0}
+    assert SQL.all(query) == ~s{SELECT CAST(?1 AS char(36)) FROM "schema" AS s0}
 
     query = Schema |> select([], type(^1, Custom.Permalink)) |> normalize
-    assert SQL.all(query) == ~s{SELECT CAST(? AS int) FROM "schema" AS s0}
+    assert SQL.all(query) == ~s{SELECT CAST(?1 AS int) FROM "schema" AS s0}
   end
 
   test "nested expressions" do
     z = 123
     query = from(r in Schema, []) |> select([r], r.x > 0 and (r.y > ^(-z)) or true) |> normalize
-    assert SQL.all(query) == ~s{SELECT ((s0."x" > 0) AND (s0."y" > ?)) OR TRUE FROM "schema" AS s0}
+    assert SQL.all(query) == ~s{SELECT ((s0."x" > 0) AND (s0."y" > ?1)) OR 1=1 FROM "schema" AS s0}
   end
 
   test "in expression" do
@@ -261,16 +261,16 @@ defmodule MssqlEcto.SelectTest do
     assert SQL.all(query) == ~s{SELECT false FROM "schema" AS s0}
 
     query = Schema |> select([e], 1 in ^[1, 2, 3]) |> normalize
-    assert SQL.all(query) == ~s{SELECT 1 IN (?,?,?) FROM "schema" AS s0}
+    assert SQL.all(query) == ~s{SELECT 1 IN (?1,?2,?3) FROM "schema" AS s0}
 
     query = Schema |> select([e], 1 in [1, ^2, 3]) |> normalize
-    assert SQL.all(query) == ~s{SELECT 1 IN (1,?,3) FROM "schema" AS s0}
+    assert SQL.all(query) == ~s{SELECT 1 IN (1,?1,3) FROM "schema" AS s0}
 
     query = Schema |> select([e], ^1 in [1, ^2, 3]) |> normalize
-    assert SQL.all(query) == ~s{SELECT ? IN (1,?,3) FROM "schema" AS s0}
+    assert SQL.all(query) == ~s{SELECT ?1 IN (1,?2,3) FROM "schema" AS s0}
 
     query = Schema |> select([e], ^1 in ^[1, 2, 3]) |> normalize
-    assert SQL.all(query) == ~s{SELECT ? IN (?,?,?) FROM "schema" AS s0}
+    assert SQL.all(query) == ~s{SELECT ?1 IN (?2,?3,?4) FROM "schema" AS s0}
 
     query = Schema |> select([e], 1 in e.w) |> normalize
     assert SQL.all(query) == ~s{SELECT 1 = ANY(s0."w") FROM "schema" AS s0}
@@ -335,10 +335,10 @@ defmodule MssqlEcto.SelectTest do
             |> normalize
 
     result =
-      "SELECT s0.\"id\", ? FROM \"schema\" AS s0 INNER JOIN \"schema2\" AS s1 ON ? " <>
-      "INNER JOIN \"schema2\" AS s2 ON ? WHERE (?) AND (?) " <>
-      "GROUP BY ?, ? HAVING (?) AND (?) " <>
-      "ORDER BY ?, s0.\"x\" OFFSET ? FETCH NEXT ? ROWS ONLY"
+      "SELECT s0.\"id\", ?1 FROM \"schema\" AS s0 INNER JOIN \"schema2\" AS s1 ON ?2 " <>
+      "INNER JOIN \"schema2\" AS s2 ON ?3 WHERE (?4) AND (?5) " <>
+      "GROUP BY ?6, ?7 HAVING (?8) AND (?9) " <>
+      "ORDER BY ?10, s0.\"x\" OFFSET ?12 ROWS FETCH NEXT ?11 ROWS ONLY"
 
     assert SQL.all(query) == String.trim(result)
   end
@@ -352,8 +352,8 @@ defmodule MssqlEcto.SelectTest do
 
     result =
       "SELECT TRUE FROM \"schema\" AS s0 " <>
-      "WHERE (extract(? from s0.\"start_time\") = CAST(? AS int)) " <>
-      "AND (extract(? from s0.\"start_time\") = CAST(? AS int))"
+      "WHERE (extract(?1 from s0.\"start_time\") = CAST(?2 AS int)) " <>
+      "AND (extract(?3 from s0.\"start_time\") = CAST(?4 AS int))"
 
     assert SQL.all(query) == String.trim(result)
   end

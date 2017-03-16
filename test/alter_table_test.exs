@@ -4,7 +4,7 @@ defmodule MssqlEcto.AlterTableTest do
   import Ecto.Migration, only: [table: 1, table: 2, references: 1, references: 2]
 
   alias MssqlEcto.Connection, as: SQL
-  
+
   test "alter table" do
     alter = {:alter, table(:posts),
              [{:add, :title, :string, [default: "Untitled", size: 100, null: false]},
@@ -31,6 +31,8 @@ defmodule MssqlEcto.AlterTableTest do
     ADD CONSTRAINT "posts_permalink_id_fkey" FOREIGN KEY ("permalink_id") REFERENCES "permalinks"("id");
     ALTER TABLE "posts"
     ALTER COLUMN "permalink_id" int NOT NULL;
+    ALTER TABLE "posts"
+    DROP CONSTRAINT "posts_pk";
     ALTER TABLE "posts"
     DROP COLUMN "summary";
     """ |> remove_newlines]

@@ -58,7 +58,7 @@ defmodule MssqlEcto.UpdateAllTest do
 
     query = from(m in Schema, update: [set: [x: ^0]]) |> normalize(:update_all)
     assert SQL.update_all(query) ==
-      ~s{UPDATE s0 SET "x" = ? FROM "schema" AS s0}
+      ~s{UPDATE s0 SET "x" = ?1 FROM "schema" AS s0}
 
     query = Schema |> join(:inner, [p], q in Schema2, p.x == q.z)
                   |> update([_], set: [x: 0]) |> normalize(:update_all)

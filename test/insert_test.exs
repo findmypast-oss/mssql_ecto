@@ -4,13 +4,13 @@ defmodule MssqlEcto.InsertTest do
   import Ecto.Query
 
   alias MssqlEcto.Connection, as: SQL
-  
+
   test "insert" do
     query = SQL.insert(nil, "schema", [:x, :y], [[:x, :y]], {:raise, [], []}, [:id])
-    assert query == ~s{INSERT INTO "schema" ("x","y") OUTPUT INSERTED."id" VALUES (?,?)}
+    assert query == ~s{INSERT INTO "schema" ("x","y") OUTPUT INSERTED."id" VALUES (?1,?2)}
 
     query = SQL.insert(nil, "schema", [:x, :y], [[:x, :y], [nil, :z]], {:raise, [], []}, [:id])
-    assert query == ~s{INSERT INTO "schema" ("x","y") OUTPUT INSERTED."id" VALUES (?,?),(DEFAULT,?)}
+    assert query == ~s{INSERT INTO "schema" ("x","y") OUTPUT INSERTED."id" VALUES (?1,?2),(DEFAULT,?3)}
 
     query = SQL.insert(nil, "schema", [], [[]], {:raise, [], []}, [:id])
     assert query == ~s{INSERT INTO "schema" OUTPUT INSERTED."id" DEFAULT VALUES}
