@@ -26,8 +26,8 @@ defmodule MssqlEcto.Connection do
   @spec prepare_execute(connection :: DBConnection.t, name :: String.t, prepared, params :: [term], options :: Keyword.t) ::
   {:ok, query :: map, term} | {:error, Exception.t}
   def prepare_execute(conn, name, prepared_query, params, options) do
-    statement = sanitise_query(prepared_query) |> IO.inspect
-    ordered_params = order_params(prepared_query, params) |> IO.inspect
+    statement = sanitise_query(prepared_query) #|> IO.inspect
+    ordered_params = order_params(prepared_query, params) #|> IO.inspect
 
     case DBConnection.prepare_execute(conn, %Query{name: name, statement: statement}, ordered_params, options) do
       {:ok, query, result} ->
@@ -54,9 +54,9 @@ defmodule MssqlEcto.Connection do
       query.statement
       |> IO.iodata_to_binary
       |> order_params(params)
-      |> IO.inspect
+      # |> IO.inspect
 
-    sanitised_query = sanitise_query(query.statement) |> IO.inspect
+    sanitised_query = sanitise_query(query.statement) #|> IO.inspect
     query = Map.put(query, :statement, sanitised_query)
 
     case DBConnection.prepare_execute(conn, query, ordered_params, options) do
@@ -82,11 +82,11 @@ defmodule MssqlEcto.Connection do
       |> Enum.map( fn [_, x] -> String.to_integer(x) end)
 
     if length(ordering) != length(params) do
-      IO.puts "\n\n\n FAILY MCWHALE\n\n\n"
-      IO.puts "QUERY"
-      IO.inspect query
-      IO.puts "\nPARAMS"
-      IO.inspect params
+      # IO.puts "\n\n\n FAILY MCWHALE\n\n\n"
+      # IO.puts "QUERY"
+      # IO.inspect query
+      # IO.puts "\nPARAMS"
+      # IO.inspect params
       raise "\nError: number of params received (#{length(params)}) does not match expected (#{length(ordering)})"
     end
 
@@ -103,7 +103,7 @@ defmodule MssqlEcto.Connection do
 
   def sanitise_query(query) do
     query
-    |> IO.inspect
+    # |> IO.inspect
     |> IO.iodata_to_binary
     |> String.replace(~r/(\?([0-9]+))(?=(?:[^\\"']|[\\"'][^\\"']*[\\"'])*$)/, "?")
   end
@@ -148,7 +148,7 @@ defmodule MssqlEcto.Connection do
   from any constraint.
   """
   @spec to_constraints(exception :: Exception.t) :: Keyword.t
-  def to_constraints(%Mssqlex.Error{}), do: []
+  def to_constraints(%Mssqlex.Error{} = error), do: error.constraint_violations
 
   ## Queries
 
@@ -199,7 +199,7 @@ defmodule MssqlEcto.Connection do
     {from, name} = get_source(query, sources, 0, from)
 
     join = QueryString.join(query, sources)
-    where = QueryString.where(query, sources) |> IO.inspect
+    where = QueryString.where(query, sources)
 
     IO.iodata_to_binary(["DELETE ", name, " FROM ", from, " AS ", name, join, where | returning(query, sources, "DELETED")])
   end

@@ -6,7 +6,9 @@ ExUnit.start exclude: [:array_type,
                        :parallel_preloader,
                        :modify_foreign_key_on_update,
                        :create_index_if_not_exists,
-                       :not_supported_by_sql_server]
+                       :not_supported_by_sql_server,
+                       :upsert,
+                       :upsert_all]
 
 # Configure Ecto for support and tests
 Application.put_env(:ecto, :primary_key_type, :id)
