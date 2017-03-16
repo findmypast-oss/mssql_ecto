@@ -2,6 +2,7 @@ Code.require_file "../support/types.exs", __DIR__
 
 defmodule Ecto.Integration.SubQueryTest do
   use Ecto.Integration.Case, async: true
+  @moduletag :integration
 
   alias Ecto.Integration.TestRepo
   import Ecto.Query

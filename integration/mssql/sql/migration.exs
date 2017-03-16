@@ -1,6 +1,7 @@
 defmodule Ecto.Integration.MigrationTest do
   # Cannot be async as other tests may migrate
   use ExUnit.Case
+  @moduletag :integration
 
   alias Ecto.Integration.PoolRepo
 

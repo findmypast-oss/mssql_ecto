@@ -4,13 +4,23 @@ defmodule MssqlEcto.Mixfile do
   def project do
     [app: :mssql_ecto,
      version: "0.1.0",
+     description: "Ecto Adapter for Microsoft SQL Server. Using Mssqlex.",
      elixir: "~> 1.4",
      build_embedded: Mix.env == :prod,
      start_permanent: Mix.env == :prod,
      deps: deps(),
-     aliases: ["test.all": &test_all/1,
-          "test.integration": &test_integration/1],
-     test_paths: test_paths(Mix.env())]
+     package: package(),
+     aliases: aliases(),
+     test_paths: ["integration/mssql", "test"],
+     test_coverage: [tool: ExCoveralls],
+     preferred_cli_env: ["test.integration": :test,
+                         "test.unit": :test,
+                         "coveralls": :test,
+                         "coveralls.travis": :test],
+     name: "MssqlEcto",
+     source_url: "https://github.com/findmypast-oss/mssql_ecto",
+     docs: [main: "readme",
+             extras: ["README.md"]]]
   end
 
   def application do
@@ -19,21 +29,22 @@ defmodule MssqlEcto.Mixfile do
 
   defp deps do
     [{:mssqlex, "~> 0.4"},
-     {:ecto, "~> 2.1"}]
+     {:ecto, "~> 2.1"},
+     {:ex_doc, "~> 0.15", only: :dev, runtime: false},
+     {:excoveralls, "~> 0.6", only: :test},
+     {:inch_ex, "~> 0.5", only: :docs}]
   end
 
-  defp test_paths(:integration), do: ["integration/mssql"]
-  defp test_paths(_), do: ["test"]
-
-  defp test_integration(args) do
-    args = if IO.ANSI.enabled?, do: ["--color" | args], else: ["--no-color" | args]
-    System.cmd "mix", ["test" | args], into: IO.binstream(:stdio, :line),
-                                       env: [{"MIX_ENV", "integration"}]
+  defp package do
+    [name: :mssql_ecto,
+     files: ["lib", "mix.exs", "README.md", "LICENSE"],
+     maintainers: ["Steven Blowers", "Jae Bach Hardie"],
+     licenses: ["Apache 2.0"],
+     links: %{"GitHub" => "https://github.com/findmypast-oss/mssql_ecto"}]
   end
 
-  defp test_all(args) do
-    Mix.Task.run "test", args
-    {_, res} = test_integration(args)
-    if res != 0, do: exit {:shutdown, 1}
+  defp aliases do
+    ["test.integration": "test --only integration",
+     "test.unit": "test --exclude integration"]
   end
 end

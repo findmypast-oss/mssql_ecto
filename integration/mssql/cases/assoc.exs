@@ -2,6 +2,7 @@ Code.require_file "../support/types.exs", __DIR__
 
 defmodule Ecto.Integration.AssocTest do
   use Ecto.Integration.Case, async: Application.get_env(:ecto, :async_integration_tests, true)
+  @moduletag :integration
 
   alias Ecto.Integration.TestRepo
   import Ecto.Query

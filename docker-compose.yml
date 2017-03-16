@@ -1,0 +1,19 @@
+version: '2'
+services:
+  sql_server:
+    image: microsoft/mssql-server-linux
+    environment:
+      - ACCEPT_EULA=Y
+      - SA_PASSWORD=TestPa$$word123
+
+  mssql_ecto:
+    build: .
+    environment:
+      - MIX_ENV=test
+      - MSSQL_UID=sa
+      - MSSQL_PWD=TestPa$$word123
+      - MSSQL_HST=tcp:sql_server,1433
+      - TRAVIS_JOB_ID=$TRAVIS_JOB_ID
+    depends_on:
+      - sql_server
+    command: ["./wait-for-it.sh", "sql_server:1433", "--", "mix", "coveralls.travis"]

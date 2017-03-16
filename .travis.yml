@@ -1,0 +1,20 @@
+sudo: required
+
+language: elixir
+elixir:
+  - 1.4
+
+services:
+  - docker
+
+install:
+  - docker-compose build
+
+script:
+  - docker-compose run mssql_ecto
+
+after_script:
+  - mix local.hex --force
+  - mix local.rebar --force
+  - MIX_ENV=docs mix deps.get
+  - MIX_ENV=docs mix inch.report

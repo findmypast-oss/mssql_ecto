@@ -1,5 +1,6 @@
 defmodule Ecto.Integration.SQLTest do
   use Ecto.Integration.Case, async: true
+  @moduletag :integration
 
   alias Ecto.Integration.TestRepo
   alias Ecto.Integration.Barebone
