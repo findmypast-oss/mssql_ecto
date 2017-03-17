@@ -781,7 +781,7 @@ defmodule Ecto.Integration.RepoTest do
     assert %Post{id: id3} = TestRepo.insert!(%Post{title: "3"})
 
     query = from(p in Post, where: p.title == "4")
-    assert {0, nil} = TestRepo.update_all(query, set: [title: "x"])
+    assert {0, []} = TestRepo.update_all(query, set: [title: "x"])
 
     assert %Post{title: "1"} = TestRepo.get(Post, id1)
     assert %Post{title: "2"} = TestRepo.get(Post, id2)
@@ -881,7 +881,7 @@ defmodule Ecto.Integration.RepoTest do
     assert %Post{id: id3} = TestRepo.insert!(%Post{title: "3", text: "hai"})
 
     query = from(p in Post, where: p.title == "4")
-    assert {0, nil} = TestRepo.delete_all(query)
+    assert {0, []} = TestRepo.delete_all(query)
     assert %Post{title: "1"} = TestRepo.get(Post, id1)
     assert %Post{title: "2"} = TestRepo.get(Post, id2)
     assert %Post{title: "3"} = TestRepo.get(Post, id3)

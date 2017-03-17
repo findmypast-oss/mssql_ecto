@@ -7,7 +7,8 @@ defmodule MssqlEcto.QueryString do
 
   binary_ops =
     [==: " = ", !=: " != ", <=: " <= ", >=: " >= ", <: " < ", >: " > ",
-     and: " AND ", or: " OR ", ilike: " ILIKE ", like: " LIKE ", in: " IN "]
+     and: " AND ", or: " OR ", ilike: " ILIKE ", like: " LIKE ", in: " IN ",
+     is_nil: " WHERE "]
 
   @binary_ops Keyword.keys(binary_ops)
 

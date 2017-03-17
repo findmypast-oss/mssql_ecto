@@ -196,7 +196,7 @@ defmodule MssqlEcto.SelectTest do
     assert SQL.all(query) == ~s{SELECT s0."x" IS NULL FROM "schema" AS s0}
 
     query = Schema |> select([r], not is_nil(r.x)) |> normalize
-    assert SQL.all(query) == ~s{SELECT ~(s0."x" IS NULL) FROM "schema" AS s0}
+    assert SQL.all(query) == ~s{SELECT NOT (s0."x" IS NULL) FROM "schema" AS s0}
   end
 
   test "fragments" do
