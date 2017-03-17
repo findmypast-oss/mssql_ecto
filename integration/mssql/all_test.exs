@@ -11,9 +11,7 @@ Code.require_file "./cases/joins.exs", __DIR__
 Code.require_file "./cases/migrator.exs", __DIR__
 Code.require_file "./cases/preload.exs", __DIR__
 Code.require_file "./cases/type.exs", __DIR__
-
-# Not passing-ish
-Code.require_file "./cases/repo.exs", __DIR__       # 2 failures
+Code.require_file "./cases/repo.exs", __DIR__
 
 # Partial / No Support
 # Code.require_file "./sql/lock.exs", __DIR__

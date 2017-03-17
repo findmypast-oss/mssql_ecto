@@ -75,7 +75,7 @@ defmodule MssqlEcto.QueryString do
   end
 
   def update_op(command, _key, _value, _sources, query) do
-    Helpers.error!(query, "Unknown update operation #{inspect command} for PostgreSQL")
+    Helpers.error!(query, "Unknown update operation #{inspect command} for Microsoft SQL Server")
   end
 
   def using_join(%Query{joins: []}, _kind, _prefix, _sources), do: {[], []}
@@ -86,7 +86,7 @@ defmodule MssqlEcto.QueryString do
           {join, name} = Helpers.get_source(query, sources, ix, source)
           [join, " AS " | name]
         %JoinExpr{qual: qual} ->
-          Helpers.error!(query, "PostgreSQL supports only inner joins on #{kind}, got: `#{qual}`")
+          Helpers.error!(query, "Microsoft SQL Server supports only inner joins on #{kind}, got: `#{qual}`")
       end)
 
     wheres =
@@ -195,7 +195,7 @@ defmodule MssqlEcto.QueryString do
   def expr({:&, _, [idx, fields, _counter]}, sources, query) do
     {_, name, schema} = elem(sources, idx)
     if is_nil(schema) and is_nil(fields) do
-      Helpers.error!(query, "PostgreSQL requires a schema module when using selector " <>
+      Helpers.error!(query, "Microsoft SQL Server requires a schema module when using selector " <>
         "#{inspect name} but none was given. " <>
         "Please specify a schema or specify exactly which fields from " <>
         "#{inspect name} you desire")
@@ -245,7 +245,7 @@ defmodule MssqlEcto.QueryString do
   end
 
   def expr({:fragment, _, [kw]}, _sources, query) when is_list(kw) or tuple_size(kw) == 3 do
-    Helpers.error!(query, "PostgreSQL adapter does not support keyword or interpolated fragments")
+    Helpers.error!(query, "Microsoft SQL Server adapter does not support keyword or interpolated fragments")
   end
 
   def expr({:fragment, _, parts}, sources, query) do
@@ -314,7 +314,7 @@ defmodule MssqlEcto.QueryString do
     Float.to_string(literal)
   end
 
-  def interval(count, interval, sources, query) do
+  def interval(count, _interval, sources, query) do
     [expr(count, sources, query)]
   end
 

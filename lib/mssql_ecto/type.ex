@@ -16,12 +16,12 @@ defmodule MssqlEcto.Type do
       |> Decimal.to_integer
       |> decode(:integer)
     rescue
-      e in FunctionClauseError ->
+      _e in FunctionClauseError ->
         {:ok, value}
     end
   end
 
-  def encode(value, type) do
+  def encode(value, _type) do
     {:ok, value}
   end
 
@@ -60,7 +60,7 @@ defmodule MssqlEcto.Type do
     Ecto.Date.cast!(value) |> Ecto.Date.dump
   end
 
-  def decode(value, type) do
+  def decode(value, _type) do
     {:ok, value}
   end
 

@@ -37,7 +37,7 @@ defmodule MssqlEcto.Storage do
         case run_query(command, opts) do
           {:ok, _} ->
             :ok
-          {:error, %{postgres: %{code: :invalid_catalog_name}}} ->
+          {:error, %{mssqlserver: %{code: :invalid_catalog_name}}} ->
             {:error, :already_down}
           {:error, error} ->
             {:error, Exception.message(error)}
@@ -64,7 +64,7 @@ defmodule MssqlEcto.Storage do
       defp select_versions(table, config) do
         case run_query(~s[SELECT version FROM "#{table}" ORDER BY version], config) do
           {:ok, %{rows: rows}} -> {:ok, Enum.map(rows, &hd/1)}
-          {:error, %{postgres: %{code: :undefined_table}}} -> {:ok, []}
+          {:error, %{mssqlserver: %{code: :undefined_table}}} -> {:ok, []}
           {:error, _} = error -> error
         end
       end

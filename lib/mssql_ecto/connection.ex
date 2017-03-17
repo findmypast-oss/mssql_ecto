@@ -27,10 +27,7 @@ defmodule MssqlEcto.Connection do
   {:ok, query :: map, term} | {:error, Exception.t}
   def prepare_execute(conn, name, prepared_query, params, options) do
     statement = sanitise_query(prepared_query)
-    |> IO.inspect
-
     ordered_params = order_params(prepared_query, params)
-    |> IO.inspect
 
     case DBConnection.prepare_execute(conn, %Query{name: name, statement: statement}, ordered_params, options) do
       {:ok, query, result} ->
@@ -57,11 +54,8 @@ defmodule MssqlEcto.Connection do
       query.statement
       |> IO.iodata_to_binary
       |> order_params(params)
-      |> IO.inspect
 
     sanitised_query = sanitise_query(query.statement)
-    |> IO.inspect
-
     query = Map.put(query, :statement, sanitised_query)
 
     case DBConnection.prepare_execute(conn, query, ordered_params, options) do
@@ -87,8 +81,6 @@ defmodule MssqlEcto.Connection do
       |> Enum.map( fn [_, x] -> String.to_integer(x) end)
 
     if length(ordering) != length(params) do
-      IO.inspect query
-      IO.inspect params
       raise "\nError: number of params received (#{length(params)}) does not match expected (#{length(ordering)})"
     end
 
@@ -109,10 +101,6 @@ defmodule MssqlEcto.Connection do
     |> String.replace(~r/(\?([0-9]+))(?=(?:[^\\"']|[\\"'][^\\"']*[\\"'])*$)/, "?")
   end
 
-  @doc """
-    When a INSERT, UPDATE or DELETE query returns no data the erlang ODBC driver may return an
-    erroneous "No SQL-driver information available." error
-  """
   defp is_erlang_odbc_no_data_found_bug?({:error, error}, statement) do
       is_dml = statement
       |> IO.iodata_to_binary()
@@ -122,7 +110,6 @@ defmodule MssqlEcto.Connection do
   end
 
   defp process_rows(result, options) do
-    # IO.inspect options[:decode_mapper]
     decoder = options[:decode_mapper] || fn x -> x end
     Map.update!(result, :rows, fn row ->
       unless is_nil(row), do: Enum.map(row, decoder)
@@ -215,7 +202,6 @@ defmodule MssqlEcto.Connection do
   def insert(prefix, table, header, rows, on_conflict, returning) do
     included_fields = header
     |> Enum.filter(fn value -> Enum.any?(rows, fn row -> value in row end) end)
-    |> IO.inspect
 
     cond do
       included_fields === [] ->
@@ -251,7 +237,6 @@ defmodule MssqlEcto.Connection do
       {row, counter} = insert_each(row, counter)
       {[?(, row, ?)], counter}
     end)
-    |> IO.inspect
     |> elem(0)
   end
 
@@ -355,7 +340,7 @@ defmodule MssqlEcto.Connection do
     queries
   end
 
-  def execute_ddl({:create_if_not_exists, %Index{} = index}) do
+  def execute_ddl({:create_if_not_exists, %Index{} = _index}) do
     raise("create index if not exists: not supported")
   end
 
@@ -529,7 +514,7 @@ defmodule MssqlEcto.Connection do
   defp options_expr(nil),
     do: []
   defp options_expr(keyword) when is_list(keyword),
-    do: error!(nil, "PostgreSQL adapter does not support keyword lists in :options")
+    do: error!(nil, "Microsoft SQL Server adapter does not support keyword lists in :options")
   defp options_expr(options),
     do: [?\s, options]
 
@@ -560,7 +545,6 @@ defmodule MssqlEcto.Connection do
          ") REFERENCES ", quote_table(table.prefix, ref.table), ?(, quote_name(ref.column), ?),
          reference_on_delete(ref.on_delete), reference_on_update(ref.on_update)]
 
-  # A reference pointing to a serial column becomes integer in postgres
   defp reference_name(%Reference{name: nil}, table, column),
     do: quote_name("#{table.name}_#{column}_fkey")
   defp reference_name(%Reference{name: name}, _table, _column),
