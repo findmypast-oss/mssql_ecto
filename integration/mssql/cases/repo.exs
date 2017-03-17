@@ -643,7 +643,7 @@ defmodule Ecto.Integration.RepoTest do
             %Comment{text: "3", lock_version: 1},
             %Comment{text: "4", lock_version: 2}] = TestRepo.all(Comment)
 
-    assert {2, nil} = TestRepo.insert_all(Post, [[], []])
+    assert {2, nil} = TestRepo.insert_all(Post, [[uuid: Ecto.UUID.generate()], [uuid: Ecto.UUID.generate()]])
     assert [%Post{}, %Post{}] = TestRepo.all(Post)
 
     assert {0, nil} = TestRepo.insert_all("posts", [])
@@ -682,7 +682,8 @@ defmodule Ecto.Integration.RepoTest do
 
   test "insert all with dumping" do
     datetime = ~N[2014-01-16 20:26:51.000000]
-    assert {2, nil} = TestRepo.insert_all(Post, [%{inserted_at: datetime}, %{title: "date"}])
+    assert {2, nil} = TestRepo.insert_all(Post,
+      [%{inserted_at: datetime, uuid: Ecto.UUID.generate()}, %{title: "date", uuid: Ecto.UUID.generate()}])
     assert [%Post{inserted_at: ^datetime, title: nil},
             %Post{inserted_at: nil, title: "date"}] = TestRepo.all(Post)
   end
