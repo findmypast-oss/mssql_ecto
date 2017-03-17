@@ -67,7 +67,7 @@ defmodule MssqlEcto.DeleteAllTest do
 
   test "delete all with returning" do
     query = Schema |> Queryable.to_query |> select([m], m) |> normalize
-    assert SQL.delete_all(query) == ~s{DELETE s0 FROM "schema" AS s0 OUTPUT DELETED."id", DELETED."x", DELETED."y", DELETED."z", DELETED."w"}
+    assert SQL.delete_all(query) == ~s{DELETE s0 OUTPUT DELETED."id", DELETED."x", DELETED."y", DELETED."z", DELETED."w" FROM "schema" AS s0}
   end
 
   test "delete all with prefix" do

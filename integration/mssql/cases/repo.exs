@@ -635,7 +635,6 @@ defmodule Ecto.Integration.RepoTest do
     assert TestRepo.aggregate(query, :count, :visits) == 3
   end
 
-  @tag :only
   test "insert all" do
     assert {2, nil} = TestRepo.insert_all("comments", [[text: "1"], %{text: "2", lock_version: 2}])
     assert {2, nil} = TestRepo.insert_all({"comments", Comment}, [[text: "3"], %{text: "4", lock_version: 2}])

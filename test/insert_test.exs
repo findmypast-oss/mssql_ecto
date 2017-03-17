@@ -13,13 +13,13 @@ defmodule MssqlEcto.InsertTest do
     assert query == ~s{INSERT INTO "schema" ("x","y") OUTPUT INSERTED."id" VALUES (?1,?2),(DEFAULT,?3)}
 
     query = SQL.insert(nil, "schema", [], [[]], {:raise, [], []}, [:id])
-    assert query == ~s{INSERT INTO "schema" OUTPUT INSERTED."id" DEFAULT VALUES}
+    assert query == ~s{INSERT INTO "schema" OUTPUT INSERTED."id" DEFAULT VALUES ; }
 
     query = SQL.insert(nil, "schema", [], [[]], {:raise, [], []}, [])
-    assert query == ~s{INSERT INTO "schema" DEFAULT VALUES}
+    assert query == ~s{INSERT INTO "schema" DEFAULT VALUES ; }
 
     query = SQL.insert("prefix", "schema", [], [[]], {:raise, [], []}, [])
-    assert query == ~s{INSERT INTO "prefix"."schema" DEFAULT VALUES}
+    assert query == ~s{INSERT INTO "prefix"."schema" DEFAULT VALUES ; }
   end
 
   @tag skip: "Not yet implemented. Should consider MERGE for upserts"

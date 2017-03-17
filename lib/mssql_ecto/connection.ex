@@ -202,7 +202,7 @@ defmodule MssqlEcto.Connection do
     join = QueryString.join(query, sources)
     where = QueryString.where(query, sources)
 
-    IO.iodata_to_binary(["DELETE ", name, " FROM ", from, " AS ", name, join, where | returning(query, sources, "DELETED")])
+    IO.iodata_to_binary(["DELETE ", name, returning(query, sources, "DELETED"), " FROM ", from, " AS ", name, join, where])
   end
 
   @doc """
@@ -215,23 +215,27 @@ defmodule MssqlEcto.Connection do
   def insert(prefix, table, header, rows, on_conflict, returning) do
     included_fields = header
     |> Enum.filter(fn value -> Enum.any?(rows, fn row -> value in row end) end)
-    if included_fields === [] do
-      IO.iodata_to_binary(["INSERT INTO ", quote_table(prefix, table),
-                           returning(returning, "INSERTED"), " DEFAULT VALUES"])
-    else
-      included_rows = Enum.map(rows, fn row ->
-        row
-        |> Enum.zip(header)
-        |> Enum.filter_map(
-        fn {_row, col} -> col in included_fields end,
-        fn {row, _col} -> row end)
-      end)
-      fields = intersperse_map(included_fields, ?,, &quote_name/1)
-      IO.iodata_to_binary(["INSERT INTO ", quote_table(prefix, table),
-                           " (", fields, ")",
-                           returning(returning, "INSERTED"), " VALUES ",
-                           insert_all(included_rows, 1),
-                           on_conflict(on_conflict, included_fields)])
+    |> IO.inspect
+
+    cond do
+      included_fields === [] ->
+        ["INSERT INTO ", quote_table(prefix, table), returning(returning, "INSERTED"), " DEFAULT VALUES ; "]
+        |> List.duplicate(length(rows))
+        |> IO.iodata_to_binary
+      true ->
+        included_rows = Enum.map(rows, fn row ->
+          row
+          |> Enum.zip(header)
+          |> Enum.filter_map(
+          fn {_row, col} -> col in included_fields end,
+          fn {row, _col} -> row end)
+        end)
+        fields = intersperse_map(included_fields, ?,, &quote_name/1)
+        IO.iodata_to_binary(["INSERT INTO ", quote_table(prefix, table),
+                             " (", fields, ")",
+                             returning(returning, "INSERTED"), " VALUES ",
+                             insert_all(included_rows, 1),
+                             on_conflict(on_conflict, included_fields)])
     end
   end
 
@@ -243,12 +247,13 @@ defmodule MssqlEcto.Connection do
   end
 
   defp insert_all(rows, counter) do
-      intersperse_reduce(rows, ?,, counter, fn row, counter ->
-        {row, counter} = insert_each(row, counter)
-        {[?(, row, ?)], counter}
-      end)
-      |> elem(0)
-    end
+    intersperse_reduce(rows, ?,, counter, fn row, counter ->
+      {row, counter} = insert_each(row, counter)
+      {[?(, row, ?)], counter}
+    end)
+    |> IO.inspect
+    |> elem(0)
+  end
 
   defp insert_each(values, counter) do
     intersperse_reduce(values, ?,, counter, fn
@@ -298,8 +303,8 @@ defmodule MssqlEcto.Connection do
       {[quote_name(field), " = ?" , Integer.to_string(acc)], acc + 1}
     end)
 
-    IO.iodata_to_binary(["DELETE FROM ", quote_table(prefix, table), " WHERE ",
-                         filters | returning(returning, "DELETED")])
+    IO.iodata_to_binary(["DELETE FROM ", quote_table(prefix, table),
+      returning(returning, "DELETED"), " WHERE ", filters])
   end
 
   ## DDL
