@@ -101,7 +101,7 @@ defmodule MssqlEcto.QueryString do
     [?\s | Helpers.intersperse_map(joins, ?\s, fn
       %JoinExpr{on: %QueryExpr{expr: expr}, qual: qual, ix: ix, source: source} ->
         {join, name} = Helpers.get_source(query, sources, ix, source)
-        [join_qual(qual), join, " AS ", name, " ON " | expr(expr, sources, query)]
+        [join_qual(qual), join, " AS ", name, " ON " | paren_expr(expr, sources, query)]
     end)]
   end
 
@@ -161,6 +161,8 @@ defmodule MssqlEcto.QueryString do
 
   def boolean(_name, [], _sources, _query), do: []
   def boolean(name, [%{expr: expr, op: op} | query_exprs], sources, query) do
+    IO.inspect { expr, op }
+
     [name |
      Enum.reduce(query_exprs, {op, paren_expr(expr, sources, query)}, fn
        %BooleanExpr{expr: expr, op: op}, {op, acc} ->
@@ -173,6 +175,8 @@ defmodule MssqlEcto.QueryString do
   def operator_to_boolean(:and), do: " AND "
   def operator_to_boolean(:or), do: " OR "
 
+  def paren_expr(false, _sources, _query),  do: "(0=1)"
+  def paren_expr(true, _sources, _query),   do: "(1=1)"
   def paren_expr(expr, sources, query) do
     [?(, expr(expr, sources, query), ?)]
   end
@@ -297,8 +301,8 @@ defmodule MssqlEcto.QueryString do
   end
 
   def expr(nil, _sources, _query),   do: "NULL"
-  def expr(true, _sources, _query),  do: "1=1"
-  def expr(false, _sources, _query), do: "0=1"
+  def expr(true, _sources, _query),  do: "1"
+  def expr(false, _sources, _query), do: "0"
 
   def expr(literal, _sources, _query) when is_binary(literal) do
     [?\', Helpers.escape_string(literal), ?\']

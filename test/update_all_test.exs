@@ -63,13 +63,13 @@ defmodule MssqlEcto.UpdateAllTest do
     query = Schema |> join(:inner, [p], q in Schema2, p.x == q.z)
                   |> update([_], set: [x: 0]) |> normalize(:update_all)
     assert SQL.update_all(query) ==
-      ~s{UPDATE s0 SET "x" = 0 FROM "schema" AS s0 INNER JOIN "schema2" AS s1 ON s0."x" = s1."z"}
+      ~s{UPDATE s0 SET "x" = 0 FROM "schema" AS s0 INNER JOIN "schema2" AS s1 ON (s0."x" = s1."z")}
 
     query = from(e in Schema, where: e.x == 123, update: [set: [x: 0]],
                              join: q in Schema2, on: e.x == q.z) |> normalize(:update_all)
     assert SQL.update_all(query) ==
       ~s{UPDATE s0 SET "x" = 0 FROM "schema" AS s0 INNER JOIN "schema2" AS s1 } <>
-      ~s{ON s0."x" = s1."z" WHERE (s0."x" = 123)}
+      ~s{ON (s0."x" = s1."z") WHERE (s0."x" = 123)}
   end
 
   test "update all with returning" do

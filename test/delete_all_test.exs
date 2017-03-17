@@ -43,7 +43,7 @@ defmodule MssqlEcto.DeleteAllTest do
       field :binary, :binary
     end
   end
-  
+
   test "delete all" do
     query = Schema |> Queryable.to_query |> normalize
     assert SQL.delete_all(query) == ~s{DELETE s0 FROM "schema" AS s0}
@@ -54,15 +54,15 @@ defmodule MssqlEcto.DeleteAllTest do
 
     query = Schema |> join(:inner, [p], q in Schema2, p.x == q.z) |> normalize
     assert SQL.delete_all(query) ==
-           ~s{DELETE s0 FROM "schema" AS s0 INNER JOIN "schema2" AS s1 ON s0."x" = s1."z"}
+           ~s{DELETE s0 FROM "schema" AS s0 INNER JOIN "schema2" AS s1 ON (s0."x" = s1."z")}
 
     query = from(e in Schema, where: e.x == 123, join: q in Schema2, on: e.x == q.z) |> normalize
     assert SQL.delete_all(query) ==
-           ~s{DELETE s0 FROM "schema" AS s0 INNER JOIN "schema2" AS s1 ON s0."x" = s1."z" WHERE (s0."x" = 123)}
+           ~s{DELETE s0 FROM "schema" AS s0 INNER JOIN "schema2" AS s1 ON (s0."x" = s1."z") WHERE (s0."x" = 123)}
 
     query = from(e in Schema, where: e.x == 123, join: assoc(e, :comments), join: assoc(e, :permalink)) |> normalize
     assert SQL.delete_all(query) ==
-      ~s{DELETE s0 FROM "schema" AS s0 INNER JOIN "schema2" AS s1 ON s1."z" = s0."x" INNER JOIN "schema3" AS s2 ON s2."id" = s0."y" WHERE (s0."x" = 123)}
+      ~s{DELETE s0 FROM "schema" AS s0 INNER JOIN "schema2" AS s1 ON (s1."z" = s0."x") INNER JOIN "schema3" AS s2 ON (s2."id" = s0."y") WHERE (s0."x" = 123)}
   end
 
   test "delete all with returning" do

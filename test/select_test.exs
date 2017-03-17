@@ -218,10 +218,10 @@ defmodule MssqlEcto.SelectTest do
 
   test "literals" do
     query = "schema" |> where(foo: true) |> select([], true) |> normalize
-    assert SQL.all(query) == ~s{SELECT 'TRUE' FROM "schema" AS s0 WHERE (s0."foo" = 1=1)}
+    assert SQL.all(query) == ~s{SELECT 'TRUE' FROM "schema" AS s0 WHERE (s0."foo" = 1)}
 
     query = "schema" |> where(foo: false) |> select([], true) |> normalize
-    assert SQL.all(query) == ~s{SELECT 'TRUE' FROM "schema" AS s0 WHERE (s0."foo" = 0=1)}
+    assert SQL.all(query) == ~s{SELECT 'TRUE' FROM "schema" AS s0 WHERE (s0."foo" = 0)}
 
     query = "schema" |> where(foo: "abc") |> select([], true) |> normalize
     assert SQL.all(query) == ~s{SELECT 'TRUE' FROM "schema" AS s0 WHERE (s0."foo" = 'abc')}
@@ -247,7 +247,7 @@ defmodule MssqlEcto.SelectTest do
   test "nested expressions" do
     z = 123
     query = from(r in Schema, []) |> select([r], r.x > 0 and (r.y > ^(-z)) or true) |> normalize
-    assert SQL.all(query) == ~s{SELECT ((s0."x" > 0) AND (s0."y" > ?1)) OR 1=1 FROM "schema" AS s0}
+    assert SQL.all(query) == ~s{SELECT ((s0."x" > 0) AND (s0."y" > ?1)) OR 1 FROM "schema" AS s0}
   end
 
   test "in expression" do
@@ -335,8 +335,8 @@ defmodule MssqlEcto.SelectTest do
             |> normalize
 
     result =
-      "SELECT s0.\"id\", ?1 FROM \"schema\" AS s0 INNER JOIN \"schema2\" AS s1 ON ?2 " <>
-      "INNER JOIN \"schema2\" AS s2 ON ?3 WHERE (?4) AND (?5) " <>
+      "SELECT s0.\"id\", ?1 FROM \"schema\" AS s0 INNER JOIN \"schema2\" AS s1 ON (?2) " <>
+      "INNER JOIN \"schema2\" AS s2 ON (?3) WHERE (?4) AND (?5) " <>
       "GROUP BY ?6, ?7 HAVING (?8) AND (?9) " <>
       "ORDER BY ?10, s0.\"x\" OFFSET ?12 ROWS FETCH NEXT ?11 ROWS ONLY"
 
