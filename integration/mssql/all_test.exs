@@ -12,7 +12,7 @@ Code.require_file "./cases/assoc.exs", __DIR__
 Code.require_file "./cases/type.exs", __DIR__
 
 # Not passing-ish
-# Code.require_file "./cases/repo.exs", __DIR__       # 13 failures
+Code.require_file "./cases/repo.exs", __DIR__       # 13 failures
 
 # NOT SUPPORTED ALLEGEDLY
 # Code.require_file "./sql/lock.exs", __DIR__

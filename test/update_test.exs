@@ -8,7 +8,7 @@ defmodule MssqlEcto.UpdateTest do
     assert query == ~s{UPDATE "schema" SET "x" = ?1, "y" = ?2 WHERE "id" = ?3}
 
     query = SQL.update(nil, "schema", [:x, :y], [:id], [:z])
-    assert query == ~s{UPDATE "schema" SET "x" = ?1, "y" = ?2 WHERE "id" = ?3 OUTPUT INSERTED."z"}
+    assert query == ~s{UPDATE "schema" SET "x" = ?1, "y" = ?2 OUTPUT INSERTED."z" WHERE "id" = ?3}
 
     query = SQL.update("prefix", "schema", [:x, :y], [:id], [])
     assert query == ~s{UPDATE "prefix"."schema" SET "x" = ?1, "y" = ?2 WHERE "id" = ?3}

@@ -7,7 +7,7 @@ defmodule MssqlEcto.QueryString do
 
   binary_ops =
     [==: " = ", !=: " != ", <=: " <= ", >=: " >= ", <: " < ", >: " > ",
-     and: " AND ", or: " OR ", ilike: " ILIKE ", like: " LIKE "]
+     and: " AND ", or: " OR ", ilike: " ILIKE ", like: " LIKE ", in: " IN "]
 
   @binary_ops Keyword.keys(binary_ops)
 
@@ -161,8 +161,6 @@ defmodule MssqlEcto.QueryString do
 
   def boolean(_name, [], _sources, _query), do: []
   def boolean(name, [%{expr: expr, op: op} | query_exprs], sources, query) do
-    IO.inspect { expr, op }
-
     [name |
      Enum.reduce(query_exprs, {op, paren_expr(expr, sources, query)}, fn
        %BooleanExpr{expr: expr, op: op}, {op, acc} ->
@@ -205,7 +203,7 @@ defmodule MssqlEcto.QueryString do
   end
 
   def expr({:in, _, [_left, []]}, _sources, _query) do
-    "false"
+    "0=1"
   end
 
   def expr({:in, _, [left, right]}, sources, query) when is_list(right) do
@@ -214,11 +212,10 @@ defmodule MssqlEcto.QueryString do
   end
 
   def expr({:in, _, [_, {:^, _, [_, 0]}]}, _sources, _query) do
-    "false"
+    "0=1"
   end
 
   def expr({:in, _, [left, {:^, _, [ix, length]}]}, sources, query) do
-    # args = Enum.intersperse(List.duplicate(??, length), ?,)
     args =
         Enum.map(ix+1..ix+length, fn (i) -> [??, to_string(i)] end)
         |> Enum.intersperse(?,)

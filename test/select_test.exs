@@ -252,13 +252,13 @@ defmodule MssqlEcto.SelectTest do
 
   test "in expression" do
     query = Schema |> select([e], 1 in []) |> normalize
-    assert SQL.all(query) == ~s{SELECT false FROM "schema" AS s0}
+    assert SQL.all(query) == ~s{SELECT 0=1 FROM "schema" AS s0}
 
     query = Schema |> select([e], 1 in [1,e.x,3]) |> normalize
     assert SQL.all(query) == ~s{SELECT 1 IN (1,s0."x",3) FROM "schema" AS s0}
 
     query = Schema |> select([e], 1 in ^[]) |> normalize
-    assert SQL.all(query) == ~s{SELECT false FROM "schema" AS s0}
+    assert SQL.all(query) == ~s{SELECT 0=1 FROM "schema" AS s0}
 
     query = Schema |> select([e], 1 in ^[1, 2, 3]) |> normalize
     assert SQL.all(query) == ~s{SELECT 1 IN (?1,?2,?3) FROM "schema" AS s0}

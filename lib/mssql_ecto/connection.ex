@@ -259,15 +259,6 @@ defmodule MssqlEcto.Connection do
     end)
   end
 
-  # defp insert_all(rows) do
-  #   intersperse_map(rows, ?,, fn row ->
-  #     [?(, intersperse_map(row, ?,, &insert_all_value/1), ?)]
-  #   end)
-  # end
-  #
-  # defp insert_all_value(nil), do: "DEFAULT"
-  # defp insert_all_value(_),   do: '?'
-
   defp returning(%Ecto.Query{select: nil}, _sources, _),
     do: []
   defp returning(%Ecto.Query{select: %{fields: fields}} = query, _sources, operation),
@@ -294,7 +285,7 @@ defmodule MssqlEcto.Connection do
     end)
 
   IO.iodata_to_binary(["UPDATE ", quote_table(prefix, table), " SET ",
-                       fields, " WHERE ", filters | returning(returning, "INSERTED")])
+                       fields, returning(returning, "INSERTED"), " WHERE ", filters ,])
   end
 
   @doc """

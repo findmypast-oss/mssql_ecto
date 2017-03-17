@@ -197,12 +197,14 @@ defmodule Ecto.Integration.RepoTest do
 
   @tag :id_type
   @tag :assigns_id_type
+  @tag :identity_insert
   test "insert with user-assigned primary key" do
     assert %Post{id: 1} = TestRepo.insert!(%Post{id: 1})
   end
 
   @tag :id_type
   @tag :assigns_id_type
+  @tag :identity_insert
   test "insert and update with user-assigned primary key in changeset" do
     changeset = Ecto.Changeset.cast(%Post{id: 11}, %{"id" => "13"}, ~w(id))
     assert %Post{id: 13} = post = TestRepo.insert!(changeset)
@@ -633,6 +635,7 @@ defmodule Ecto.Integration.RepoTest do
     assert TestRepo.aggregate(query, :count, :visits) == 3
   end
 
+  @tag :only
   test "insert all" do
     assert {2, nil} = TestRepo.insert_all("comments", [[text: "1"], %{text: "2", lock_version: 2}])
     assert {2, nil} = TestRepo.insert_all({"comments", Comment}, [[text: "3"], %{text: "4", lock_version: 2}])
