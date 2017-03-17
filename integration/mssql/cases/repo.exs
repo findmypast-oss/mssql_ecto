@@ -620,7 +620,7 @@ defmodule Ecto.Integration.RepoTest do
     assert TestRepo.aggregate(Post, :min, :visits) == 10
     assert TestRepo.aggregate(Post, :count, :visits) == 4
     assert "50" = to_string(TestRepo.aggregate(Post, :sum, :visits))
-    assert "12.5" <> _ = to_string(TestRepo.aggregate(Post, :avg, :visits))
+    assert "12" <> _ = to_string(TestRepo.aggregate(Post, :avg, :visits))
 
     # With order_by
     query = from Post, order_by: [asc: :visits]
@@ -631,7 +631,7 @@ defmodule Ecto.Integration.RepoTest do
     assert TestRepo.aggregate(query, :max, :visits) == 12
 
     # With distinct
-    query = from Post, order_by: [asc: :visits], distinct: true
+    query = from Post, distinct: true
     assert TestRepo.aggregate(query, :count, :visits) == 3
   end
 
