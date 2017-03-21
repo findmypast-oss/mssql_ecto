@@ -314,8 +314,9 @@ defmodule MssqlEcto.Connection do
   end
 
   def execute_ddl({command, %Table{} = table}) when command in @drops do
-    [["DROP TABLE ", if_do(command == :drop_if_exists, "IF EXISTS "),
-      quote_table(table.prefix, table.name)]]
+    [[if_do(command == :drop_if_exists, "IF OBJECT_ID('#{table.prefix}#{table.name}', 'U') IS NOT NULL "), 
+      "DROP TABLE ", quote_table(table.prefix, table.name) 
+    ]]
   end
 
   def execute_ddl({:alter, %Table{} = table, changes}) do
@@ -381,8 +382,10 @@ defmodule MssqlEcto.Connection do
     do: error!(nil, "MSSQL adapter does not support keyword lists in execute")
 
   defp quote_alter([], _table), do: []
-  defp quote_alter(statement, table),
-    do: ["ALTER TABLE ", quote_table(table.prefix, table.name), statement, "; "]
+
+  defp quote_alter(statement, table) do
+    ["ALTER TABLE ", quote_table(table.prefix, table.name), statement, "; "]
+  end
 
   defp pk_definition(columns, prefix, table) do
     pks =
@@ -439,9 +442,9 @@ defmodule MssqlEcto.Connection do
      modify_default(name, ref.type, opts, table, name)]
   end
 
-  defp column_change(table, {:modify, name, type, opts}) do
+  defp column_change(table, {:modify, name, type, opts} = stuff) do
     [quote_alter([" ALTER COLUMN ", quote_name(name), ?\s, column_type(type, opts),
-     modify_null(name, opts)], table), modify_default(name, type, opts, table, name)]
+     modify_null(name, opts)], table), modify_default(name, type, opts, table, name) ]
   end
 
   defp column_change(table, {:remove, name}) do
@@ -459,7 +462,8 @@ defmodule MssqlEcto.Connection do
   defp modify_default(name, type, opts, table, name) do
     case Keyword.fetch(opts, :default) do
       {:ok, val} ->
-        [quote_alter([" DROP CONSTRAINT IF EXISTS ", constraint_name("default", table, name)], table),
+        constraint_tag = constraint_name("default", table, name)
+        ["IF OBJECT_ID('", constraint_tag, "', 'D') IS NOT NULL ", quote_alter([" DROP CONSTRAINT ", constraint_name("default", table, name)], table),
          quote_alter([" ADD", default_expr({:ok, val}, type, table, name), " FOR ", quote_name(name)], table)]
       :error -> []
     end

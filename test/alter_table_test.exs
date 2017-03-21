@@ -23,8 +23,7 @@ defmodule MssqlEcto.AlterTableTest do
     ALTER COLUMN "price" numeric(8,2) NULL;
     ALTER TABLE "posts"
     ALTER COLUMN "cost" int NOT NULL;
-    ALTER TABLE "posts"
-    DROP CONSTRAINT IF EXISTS "posts_cost_default";
+    IF OBJECT_ID('\"posts_cost_default\"', 'D') IS NOT NULL ALTER TABLE \"posts\" DROP CONSTRAINT \"posts_cost_default\";
     ALTER TABLE "posts"
     ADD CONSTRAINT "posts_cost_default" DEFAULT NULL FOR "cost";
     ALTER TABLE "posts"

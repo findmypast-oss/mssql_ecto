@@ -11,7 +11,6 @@ defmodule Ecto.Integration.JoinsTest do
   alias Ecto.Integration.User
   alias Ecto.Integration.PostUserCompositePk
 
-  @tag :only
   @tag :update_with_join
   test "update all with joins" do
     user = TestRepo.insert!(%User{name: "Tester"})
@@ -391,7 +390,6 @@ defmodule Ecto.Integration.JoinsTest do
     assert c3.author.id == uid2
   end
 
-  @tag :only
   test "nested assoc with child preload" do
     %Post{id: pid1} = TestRepo.insert!(%Post{title: "1"})
     %Post{id: pid2} = TestRepo.insert!(%Post{title: "2"})

@@ -64,7 +64,6 @@ defmodule Ecto.Integration.TransactionTest do
     assert [%Trans{text: "1"}] = PoolRepo.all(Trans)
   end
 
-  @tag :only
   test "transaction rolls back" do
 
     try do
