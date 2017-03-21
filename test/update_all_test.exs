@@ -3,7 +3,7 @@ defmodule MssqlEcto.UpdateAllTest do
 
   import Ecto.Query
 
-  alias MssqlEcto.Connection, as: SQL
+  alias MssqlEcto.Query, as: SQL
 
   defmodule Schema do
     use Ecto.Schema
