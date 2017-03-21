@@ -3,7 +3,8 @@ defmodule MssqlEcto do
   """
 
   use Ecto.Adapters.SQL, :mssqlex
-  use MssqlEcto.Storage
+
+  alias MssqlEcto.Migration
 
   import MssqlEcto.Type, only: [encode: 2, decode: 2]
 
@@ -17,5 +18,7 @@ defmodule MssqlEcto do
 
   def loaders({:embed, _} = type, _), do: [&Ecto.Adapters.SQL.load_embed(type, &1)]
   def loaders(ecto_type, type),       do: [&(decode(&1, ecto_type)), type]
+
+  def supports_ddl_transaction?,      do: Migration.supports_ddl_transaction?
 
 end
