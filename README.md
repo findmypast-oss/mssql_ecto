@@ -10,10 +10,9 @@ Ecto Adapter for [Mssqlex](https://github.com/findmypast-oss/mssqlex)
 
 ## WARNING! Testing In Progress
 
-Please note that we are still testing and working on this adapter and have not yet
-got it running in production.
+Please note, that we are still developing and testing this adapter and have not yet got it running in production.
 
-If you find any issues with the software please report them using the [GitHub Issue Tracker](https://github.com/findmypast-oss/mssql_ecto/issues)
+If you find any issues with the software please report them using the [GitHub Issue Tracker](https://github.com/findmypast-oss/mssql_ecto/issues).
 
 ## Features not yet implemented
 
