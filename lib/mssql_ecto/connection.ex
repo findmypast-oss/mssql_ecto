@@ -73,7 +73,7 @@ defmodule MssqlEcto.Connection do
     execute(conn, %Query{name: "", statement: statement}, params, options)
   end
 
-  def order_params(query, params) do
+  defp order_params(query, params) do
     sanitised = Regex.replace(~r/(([^\\]|^))["'].*?[^\\]['"]/, IO.iodata_to_binary(query), "\\g{1}")
 
     ordering =
@@ -95,7 +95,7 @@ defmodule MssqlEcto.Connection do
     end
   end
 
-  def sanitise_query(query) do
+  defp sanitise_query(query) do
     query
     |> IO.iodata_to_binary
     |> String.replace(~r/(\?([0-9]+))(?=(?:[^\\"']|[\\"'][^\\"']*[\\"'])*$)/, "?")
@@ -142,6 +142,7 @@ defmodule MssqlEcto.Connection do
   ## Queries
   def all(query), do: SQL.all(query)
   def update_all(query, prefix \\ nil), do: SQL.update_all(query, prefix)
+  @doc false
   def delete_all(query), do: SQL.delete_all(query)
 
   def insert(prefix, table, header, rows, on_conflict, returning),
@@ -152,14 +153,20 @@ defmodule MssqlEcto.Connection do
     do: SQL.delete(prefix, table, filters, returning)
 
   ## Migration
+  @doc false
   def execute_ddl(command), do: Migration.execute_ddl(command)
+  @doc false
   def supports_ddl_transaction?, do: Migration.supports_ddl_transaction?
 
   ## Storage
+  @doc false
   def storage_up(opts), do: Storage.storage_up(opts)
+  @doc false
   def storage_down(opts), do: Storage.storage_down(opts)
 
   ## Structure
+  @doc false
   def structure_dump(default, config), do: Structure.structure_dump(default, config)
+  @doc false
   def structure_load(default, config), do: Structure.structure_load(default, config)
 end
