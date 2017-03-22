@@ -1,6 +1,5 @@
 defmodule MssqlEcto do
-  @moduledoc """
-  """
+  @moduledoc false
 
   use Ecto.Adapters.SQL, :mssqlex
 
