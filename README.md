@@ -42,6 +42,19 @@ def application do
 end
 ```
 
+## Configuration
+
+Example configuration:
+
+```elixir
+config :my_app, MyApp.Repo,
+  adapter: MssqlEcto,
+  database: "sql_server_db",
+  username: "bob",
+  password: "mySecurePa$$word",
+  hostname: "localhost"
+```
+
 ## Features not yet implemented
 
 * Table comments
