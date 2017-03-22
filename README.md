@@ -14,6 +14,34 @@ Please note, that we are still developing and testing this adapter and have not 
 
 If you find any issues with the software please report them using the [GitHub Issue Tracker](https://github.com/findmypast-oss/mssql_ecto/issues).
 
+## Installation
+
+### Erlang ODBC Application
+
+MssqlEcto requires the [Erlang ODBC application](http://erlang.org/doc/man/odbc.html) to be installed. This might require the installation of an additional package depending on how you have installed Elixir/Erlang (e.g. on Ubuntu `sudo apt-get install erlang-odbc`).
+
+### Microsoft's ODBC Driver
+
+MssqlEcto depends on Microsoft's ODBC Driver for SQL Server. You can find installation instructions for [Linux](https://docs.microsoft.com/en-us/sql/connect/odbc/linux/installing-the-microsoft-odbc-driver-for-sql-server-on-linux) or [other platforms](https://docs.microsoft.com/en-us/sql/connect/odbc/microsoft-odbc-driver-for-sql-server) on the official site.
+
+### Hex
+
+This package is availabe in Hex, the package can be installed by adding `mssqlex` to your list of dependencies in `mix.exs`:
+
+```elixir
+def deps do
+  [{:mssql_ecto, "~> 0.1"}]
+end
+```
+
+If you are running an Elixir version below 1.4 or you have the `applcations` key set in your application options, you will also need to update your list of running applications:
+
+```elixir
+def application do
+  [applications: [:logger, :mssql_ecto, :ecto]]
+end
+```
+
 ## Features not yet implemented
 
 * Table comments
