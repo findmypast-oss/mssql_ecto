@@ -57,25 +57,25 @@ config :my_app, MyApp.Repo,
 
 ## Type Mappings
 
-| Ecto Type       | SQL Server Type    |
-|:---------------:|:------------------:|
-| :id             | int                |
-| :serial         | int identity(1, 1) |
-| :binary_id      | char(36)           |
-| :uuid           | char(36)           |
-| :string         | nvarchar           |
-| :binary         | nvarchar(4000)     |
-| :integer        | int                |
-| :boolean        | bit                |
-| {:array, type}  | list of type       |
-| :map            | nvarchar(4000)     |
-| {:map, _}       | nvarchar(4000)     |
-| :date           | date               |
-| :time           | time               |
-| :utc_datetime   | datetime2          |
-| :naive_datetime | datetime2          |
-| :float          | float              |
-| :decimal        | decimal            |
+| Ecto Type       | SQL Server Type    | Caveats                             |
+|:---------------:|:------------------:|:-----------------------------------:|
+| :id             | int                |                                     |
+| :serial         | int identity(1, 1) |                                     |
+| :binary_id      | char(36)           |                                     |
+| :uuid           | char(36)           |                                     |
+| :string         | nvarchar           |                                     |
+| :binary         | nvarchar(4000)     | Limited size, not fully implemented |
+| :integer        | int                |                                     |
+| :boolean        | bit                |                                     |
+| {:array, type}  | list of type       | Not Supported                       |
+| :map            | nvarchar(4000)     | Not Supported                       |
+| {:map, _}       | nvarchar(4000)     | Not Supported                       |
+| :date           | date               |                                     |
+| :time           | time               | Can write but can't read            |
+| :utc_datetime   | datetime2          |                                     |
+| :naive_datetime | datetime2          |                                     |
+| :float          | float              |                                     |
+| :decimal        | decimal            |                                     |
 
 ## Features not yet implemented
 
