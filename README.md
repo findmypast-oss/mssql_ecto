@@ -12,6 +12,8 @@ Ecto Adapter for [Mssqlex](https://github.com/findmypast-oss/mssqlex)
 
 Please note, that we are still developing and testing this adapter and have not yet got it running in production.
 
+We are currently only testing using Elixir on Linux.
+
 If you find any issues with the software please report them using the [GitHub Issue Tracker](https://github.com/findmypast-oss/mssql_ecto/issues).
 
 ## Installation
@@ -76,6 +78,13 @@ config :my_app, MyApp.Repo,
 | :naive_datetime | datetime2          |                                     |
 | :float          | float              |                                     |
 | :decimal        | decimal            |                                     |
+
+## SQL Server version compatibility
+
+- [x] SQL Server 2016
+- [ ] SQL Server 2014
+- [ ] SQL Server 2012
+- [ ] SQL Server 2008
 
 ## Features not yet implemented
 
