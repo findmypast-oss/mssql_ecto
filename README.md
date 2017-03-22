@@ -55,6 +55,28 @@ config :my_app, MyApp.Repo,
   hostname: "localhost"
 ```
 
+## Type Mappings
+
+| Ecto Type       | SQL Server Type    |
+|:---------------:|:------------------:|
+| :id             | int                |
+| :serial         | int identity(1, 1) |
+| :binary_id      | char(36)           |
+| :uuid           | char(36)           |
+| :string         | nvarchar           |
+| :binary         | nvarchar(4000)     |
+| :integer        | int                |
+| :boolean        | bit                |
+| {:array, type}  | list of type       |
+| :map            | nvarchar(4000)     |
+| {:map, _}       | nvarchar(4000)     |
+| :date           | date               |
+| :time           | time               |
+| :utc_datetime   | datetime2          |
+| :naive_datetime | datetime2          |
+| :float          | float              |
+| :decimal        | decimal            |
+
 ## Features not yet implemented
 
 * Table comments
