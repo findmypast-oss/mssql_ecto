@@ -65,7 +65,6 @@ defmodule Ecto.Integration.TransactionTest do
   end
 
   test "transaction rolls back" do
-
     try do
       PoolRepo.transaction(fn ->
         e = PoolRepo.insert!(%Trans{text: "2"})
@@ -141,7 +140,6 @@ defmodule Ecto.Integration.TransactionTest do
     assert [] = TestRepo.all(Trans)
   end
 
-  @tag :skip
   test "transactions are not shared in repo" do
     pid = self()
 
