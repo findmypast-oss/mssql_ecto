@@ -1,7 +1,6 @@
 defmodule MssqlEcto.Structure do
   @behaviour Ecto.Adapter.Structure
 
-  @doc false
   def structure_dump(_default, _config) do
     #table = config[:migration_source] || "schema_migrations"
 
@@ -11,7 +10,6 @@ defmodule MssqlEcto.Structure do
          # do: append_versions(table, versions, path)
   end
 
-  @doc false
   def structure_load(_default, _config) do
     #path = config[:dump_path] || Path.join(default, "structure.sql")
 

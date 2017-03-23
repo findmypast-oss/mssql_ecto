@@ -153,20 +153,14 @@ defmodule MssqlEcto.Connection do
     do: SQL.delete(prefix, table, filters, returning)
 
   ## Migration
-  @doc false
   def execute_ddl(command), do: Migration.execute_ddl(command)
-  @doc false
   def supports_ddl_transaction?, do: Migration.supports_ddl_transaction?
 
   ## Storage
-  @doc false
   def storage_up(opts), do: Storage.storage_up(opts)
-  @doc false
   def storage_down(opts), do: Storage.storage_down(opts)
 
   ## Structure
-  @doc false
   def structure_dump(default, config), do: Structure.structure_dump(default, config)
-  @doc false
   def structure_load(default, config), do: Structure.structure_load(default, config)
 end
