@@ -28,7 +28,7 @@ MssqlEcto depends on Microsoft's ODBC Driver for SQL Server. You can find instal
 
 ### Hex
 
-This package is availabe in Hex, the package can be installed by adding `mssqlex` to your list of dependencies in `mix.exs`:
+This package is availabe in Hex, the package can be installed by adding `mssql_ecto` to your list of dependencies in `mix.exs`:
 
 ```elixir
 def deps do
