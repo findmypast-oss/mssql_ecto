@@ -106,7 +106,7 @@ defmodule MssqlEcto.Connection do
       |> IO.iodata_to_binary()
       |> (fn string -> String.starts_with?(string, "INSERT") || String.starts_with?(string, "DELETE") || String.starts_with?(string, "UPDATE") end).()
 
-      is_dml and error.message == "No SQL-driver information available."
+      is_dml and error.message =~ "No SQL-driver information available."
   end
 
   defp process_rows(result, options) do
