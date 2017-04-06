@@ -48,7 +48,6 @@ defmodule MssqlEcto.SelectTest do
     assert SQL.all(query) == ~s{SELECT s0."x" FROM "schema" AS s0}
   end
 
-
   test "from without schema" do
     query = "posts" |> select([r], r.x) |> normalize
     assert SQL.all(query) == ~s{SELECT p0."x" FROM "posts" AS p0}
@@ -335,10 +334,10 @@ defmodule MssqlEcto.SelectTest do
             |> normalize
 
     result =
-      "SELECT s0.\"id\", ?1 FROM \"schema\" AS s0 INNER JOIN \"schema2\" AS s1 ON (?2) " <>
-      "INNER JOIN \"schema2\" AS s2 ON (?3) WHERE (?4) AND (?5) " <>
-      "GROUP BY ?6, ?7 HAVING (?8) AND (?9) " <>
-      "ORDER BY ?10, s0.\"x\" OFFSET ?12 ROWS FETCH NEXT ?11 ROWS ONLY"
+      ~s/SELECT s0."id", ?1 FROM "schema" AS s0 INNER JOIN "schema2" AS s1 ON (?2) / <>
+      ~s/INNER JOIN "schema2" AS s2 ON (?3) WHERE (?4) AND (?5) / <>
+      ~s/GROUP BY ?6, ?7 HAVING (?8) AND (?9) / <>
+      ~s/ORDER BY ?10, s0."x" OFFSET ?12 ROWS FETCH NEXT ?11 ROWS ONLY/
 
     assert SQL.all(query) == String.trim(result)
   end
