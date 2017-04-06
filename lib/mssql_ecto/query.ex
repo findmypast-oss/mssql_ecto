@@ -67,25 +67,26 @@ defmodule MssqlEcto.Query do
     included_fields = header
     |> Enum.filter(fn value -> Enum.any?(rows, fn row -> value in row end) end)
 
-    cond do
-      included_fields === [] ->
-        ["INSERT INTO ", quote_table(prefix, table), returning(returning, "INSERTED"), " DEFAULT VALUES ; "]
-        |> List.duplicate(length(rows))
-        |> IO.iodata_to_binary
-      true ->
-        included_rows = Enum.map(rows, fn row ->
+    if included_fields === [] do
+      ["INSERT INTO ", quote_table(prefix, table), returning(returning, "INSERTED"), " DEFAULT VALUES ; "]
+      |> List.duplicate(length(rows))
+      |> IO.iodata_to_binary
+    else
+      included_rows =
+        Enum.map(rows, fn row ->
           row
           |> Enum.zip(header)
           |> Enum.filter_map(
           fn {_row, col} -> col in included_fields end,
           fn {row, _col} -> row end)
-        end)
-        fields = intersperse_map(included_fields, ?,, &quote_name/1)
-        IO.iodata_to_binary(["INSERT INTO ", quote_table(prefix, table),
-                             " (", fields, ")",
-                             returning(returning, "INSERTED"), " VALUES ",
-                             insert_all(included_rows, 1),
-                             on_conflict(on_conflict, included_fields)])
+      end)
+
+      fields = intersperse_map(included_fields, ?,, &quote_name/1)
+      IO.iodata_to_binary(["INSERT INTO ", quote_table(prefix, table),
+                           " (", fields, ")",
+                           returning(returning, "INSERTED"), " VALUES ",
+                           insert_all(included_rows, 1),
+                           on_conflict(on_conflict, included_fields)])
     end
   end
 
