@@ -9,14 +9,6 @@
 
 [Ecto](https://github.com/elixir-ecto/ecto) Adapter for [Mssqlex](https://github.com/findmypast-oss/mssqlex)
 
-## WARNING! Testing In Progress
-
-Please note, that we are still testing this adapter, however it is running in production.
-
-We are currently only using it with Elixir on Linux.
-
-If you find any issues with the software please report them using the [GitHub Issue Tracker](https://github.com/findmypast-oss/mssql_ecto/issues).
-
 ## Installation
 
 ### Erlang ODBC Application
@@ -80,16 +72,9 @@ config :my_app, MyApp.Repo,
 | :float          | float              |                                     |
 | :decimal        | decimal            |                                     |
 
-## SQL Server version compatibility
-
-- [x] SQL Server 2016
-- [ ] SQL Server 2014
-- [ ] SQL Server 2012
-- [ ] SQL Server 2008
-
 ## Features not yet implemented
 
 * Table comments
 * Column comments
 * On conflict
-* Constraint checking
+* Upserts
