@@ -7,7 +7,7 @@
 [![Hex.pm](https://img.shields.io/hexpm/v/mssql_ecto.svg)](https://hex.pm/packages/mssql_ecto)
 [![LICENSE](https://img.shields.io/hexpm/l/mssql_ecto.svg)](https://github.com/findmypast-oss/mssql_ecto/blob/master/LICENSE)
 
-Ecto Adapter for [Mssqlex](https://github.com/findmypast-oss/mssqlex)
+[Ecto](https://github.com/elixir-ecto/ecto) Adapter for [Mssqlex](https://github.com/findmypast-oss/mssqlex)
 
 ## WARNING! Testing In Progress
 
