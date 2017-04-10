@@ -19,7 +19,15 @@ defmodule MssqlEcto.QueryString do
   def handle_call(fun, _arity), do: {:fun, Atom.to_string(fun)}
 
   def select(%Query{select: %{fields: fields}} = query, select_distinct, sources) do
-    ["SELECT", select_distinct, ?\s | select_fields(fields, sources, query)]
+    ["SELECT", top(query, sources), select_distinct, ?\s | select_fields(fields, sources, query)]
+  end
+
+  def top(%Query{offset: nil, limit: %QueryExpr{expr: expr}} = query, sources) do
+    [" TOP ", expr(expr, sources, query)]
+  end
+
+  def top(_, _) do
+    []
   end
 
   def select_fields([], _sources, _query),
@@ -148,7 +156,7 @@ defmodule MssqlEcto.QueryString do
 
   def offset(%Query{offset: nil, limit: nil}, _sources), do: []
   def offset(%Query{offset: nil, limit: %QueryExpr{expr: expr}} = query, sources) do
-    [" OFFSET 0 ROWS FETCH NEXT ", expr(expr, sources, query), " ROWS ONLY"]
+    []
   end
   def offset(%Query{offset: %QueryExpr{expr: offset_expr}, limit: %QueryExpr{expr: limit_expr}} = query, sources) do
     [" OFFSET ", expr(offset_expr, sources, query), " ROWS FETCH NEXT ", expr(limit_expr, sources, query), " ROWS ONLY"]
