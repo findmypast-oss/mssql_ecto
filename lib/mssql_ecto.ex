@@ -1,9 +1,12 @@
 defmodule MssqlEcto do
   @moduledoc false
+  @behaviour Ecto.Adapter.Storage
 
   use Ecto.Adapters.SQL, :mssqlex
 
   alias MssqlEcto.Migration
+  alias MssqlEcto.Storage
+  alias MssqlEcto.Structure
 
   import MssqlEcto.Type, only: [encode: 2, decode: 2]
 
@@ -18,6 +21,14 @@ defmodule MssqlEcto do
   def loaders({:embed, _} = type, _), do: [&Ecto.Adapters.SQL.load_embed(type, &1)]
   def loaders(ecto_type, type),       do: [&(decode(&1, ecto_type)), type]
 
-  def supports_ddl_transaction?,      do: Migration.supports_ddl_transaction?
+  ## Migration
+  def supports_ddl_transaction?, do: Migration.supports_ddl_transaction?
 
+  ## Storage
+  def storage_up(opts), do: Storage.storage_up(opts)
+  def storage_down(opts), do: Storage.storage_down(opts)
+
+  ## Structure
+  def structure_dump(default, config), do: Structure.structure_dump(default, config)
+  def structure_load(default, config), do: Structure.structure_load(default, config)
 end

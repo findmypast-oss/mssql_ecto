@@ -76,8 +76,8 @@ end
 {:ok, _} = MssqlEcto.ensure_all_started(TestRepo, :temporary)
 
 # Load up the repository, start it, and run migrations
-_   = MssqlEcto.Storage.storage_down(TestRepo.config())
-:ok = MssqlEcto.Storage.storage_up(TestRepo.config())
+_   = MssqlEcto.storage_down(TestRepo.config())
+:ok = MssqlEcto.storage_up(TestRepo.config())
 
 {:ok, _pid} = TestRepo.start_link
 {:ok, _pid} = PoolRepo.start_link
