@@ -1,8 +1,5 @@
 defmodule MssqlEcto.Connection do
   alias Mssqlex.Query
-  alias MssqlEcto.Migration
-  alias MssqlEcto.Storage
-  alias MssqlEcto.Structure
   alias MssqlEcto.Query, as: SQL
 
   @typedoc "The prepared query which is an SQL command"
@@ -153,14 +150,5 @@ defmodule MssqlEcto.Connection do
     do: SQL.delete(prefix, table, filters, returning)
 
   ## Migration
-  def execute_ddl(command), do: Migration.execute_ddl(command)
-  def supports_ddl_transaction?, do: Migration.supports_ddl_transaction?
-
-  ## Storage
-  def storage_up(opts), do: Storage.storage_up(opts)
-  def storage_down(opts), do: Storage.storage_down(opts)
-
-  ## Structure
-  def structure_dump(default, config), do: Structure.structure_dump(default, config)
-  def structure_load(default, config), do: Structure.structure_load(default, config)
+  def execute_ddl(command), do: MssqlEcto.Migration.execute_ddl(command)
 end
