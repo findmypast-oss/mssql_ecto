@@ -47,7 +47,8 @@ config :my_app, MyApp.Repo,
   database: "sql_server_db",
   username: "bob",
   password: "mySecurePa$$word",
-  hostname: "localhost"
+  hostname: "localhost",
+  odbc_driver: "{SQL Server Native Client 11.0}" # this will have to be set if not using ODBC driver
 ```
 
 ## Type Mappings
