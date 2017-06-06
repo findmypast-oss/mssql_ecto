@@ -29,14 +29,6 @@ def deps do
 end
 ```
 
-If you are running an Elixir version below 1.4 or you have the `applications` key set in your application options, you will also need to update your list of running applications:
-
-```elixir
-def application do
-  [applications: [:logger, :mssql_ecto, :ecto]]
-end
-```
-
 ## Configuration
 
 Example configuration:
