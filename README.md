@@ -21,11 +21,45 @@ MssqlEcto depends on Microsoft's ODBC Driver for SQL Server. You can find instal
 
 ### Hex
 
-This package is available in Hex, and can be installed by adding `mssql_ecto` to your list of dependencies in `mix.exs`:
+#### With [Application Inference](https://elixir-lang.org/blog/2017/01/05/elixir-v1-4-0-released/#application-inference)
+
+If you are using [application inference](https://elixir-lang.org/blog/2017/01/05/elixir-v1-4-0-released/#application-inference), i.e. `application` in your `mix.exs` looks something like this:
+
+```elixir
+def application do
+  [extra_applications: [:logger]]
+end
+```
+
+Note, the lack of `:applications` key. Then, you just need to add the following dependencies:
 
 ```elixir
 def deps do
-  [{:mssql_ecto, "~> 0.1"}]
+  [{:mssql_ecto, "~> 0.1"},
+   {:mssqlex, "~> 0.6"}]
+end
+```
+
+#### Without [Application Inference](https://elixir-lang.org/blog/2017/01/05/elixir-v1-4-0-released/#application-inference)
+
+If you are explicitly calling out all running applications under `application` in your `mix.exs`, i.e. it looks something like this:
+
+```elixir
+def application do
+  [applications: [:logger, :plug, :postgrex]]
+end
+```
+
+Then, you need to add `mssql_ecto` and `mssqlex` to both your `deps` and list of running applications:
+
+```elixir
+def application do
+  [applications: [:logger, :plug, :mssqlex, :mssql_ecto]]
+end
+
+def deps do
+  [{:mssql_ecto, "~> 0.1"},
+   {:mssqlex, "~> 0.6"}]
 end
 ```
 
