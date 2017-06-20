@@ -16,7 +16,7 @@ defmodule MssqlEcto.Storage do
     case run_query(command, opts) do
       {:ok, _} ->
         :ok
-      {:error, %{odbc_code: :base_table_or_view_already_exists}} ->
+      {:error, %{odbc_code: :database_already_exists}} ->
         {:error, :already_up}
       {:error, error} ->
         {:error, Exception.message(error)}
@@ -35,7 +35,7 @@ defmodule MssqlEcto.Storage do
     case run_query(command, opts) do
       {:ok, _} ->
         :ok
-      {:error, %{mssqlserver: %{code: :invalid_catalog_name}}} ->
+      {:error, %{odbc_code: :base_table_or_view_not_found}} ->
         {:error, :already_down}
       {:error, error} ->
         {:error, Exception.message(error)}

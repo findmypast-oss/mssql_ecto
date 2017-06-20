@@ -147,7 +147,7 @@ defmodule MssqlEcto.SelectTest do
 
   test "limit and offset" do
     query = Schema |> limit([r], 3) |> select([], true) |> normalize
-    assert SQL.all(query) == ~s{SELECT 'TRUE' FROM "schema" AS s0 OFFSET 0 ROWS FETCH NEXT 3 ROWS ONLY}
+    assert SQL.all(query) == ~s{SELECT TOP 3 'TRUE' FROM "schema" AS s0}
 
     query = Schema |> offset([r], 5) |> select([], true) |> normalize
     assert SQL.all(query) == ~s{SELECT 'TRUE' FROM "schema" AS s0 OFFSET 5 ROWS}

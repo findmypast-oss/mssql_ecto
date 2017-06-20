@@ -7,15 +7,7 @@
 [![Hex.pm](https://img.shields.io/hexpm/v/mssql_ecto.svg)](https://hex.pm/packages/mssql_ecto)
 [![LICENSE](https://img.shields.io/hexpm/l/mssql_ecto.svg)](https://github.com/findmypast-oss/mssql_ecto/blob/master/LICENSE)
 
-Ecto Adapter for [Mssqlex](https://github.com/findmypast-oss/mssqlex)
-
-## WARNING! Testing In Progress
-
-Please note, that we are still testing this adapter, however it is running in production.
-
-We are currently only using it with Elixir on Linux.
-
-If you find any issues with the software please report them using the [GitHub Issue Tracker](https://github.com/findmypast-oss/mssql_ecto/issues).
+[Ecto](https://github.com/elixir-ecto/ecto) Adapter for [Mssqlex](https://github.com/findmypast-oss/mssqlex)
 
 ## Installation
 
@@ -29,19 +21,45 @@ MssqlEcto depends on Microsoft's ODBC Driver for SQL Server. You can find instal
 
 ### Hex
 
-This package is availabe in Hex, the package can be installed by adding `mssql_ecto` to your list of dependencies in `mix.exs`:
+#### With [Application Inference](https://elixir-lang.org/blog/2017/01/05/elixir-v1-4-0-released/#application-inference)
 
-```elixir
-def deps do
-  [{:mssql_ecto, "~> 0.1"}]
-end
-```
-
-If you are running an Elixir version below 1.4 or you have the `applcations` key set in your application options, you will also need to update your list of running applications:
+If you are using [application inference](https://elixir-lang.org/blog/2017/01/05/elixir-v1-4-0-released/#application-inference), i.e. `application` in your `mix.exs` looks something like this:
 
 ```elixir
 def application do
-  [applications: [:logger, :mssql_ecto, :ecto]]
+  [extra_applications: [:logger]]
+end
+```
+
+Note, the lack of `:applications` key. Then, you just need to add the following dependencies:
+
+```elixir
+def deps do
+  [{:mssql_ecto, "~> 0.1"},
+   {:mssqlex, "~> 0.6"}]
+end
+```
+
+#### Without [Application Inference](https://elixir-lang.org/blog/2017/01/05/elixir-v1-4-0-released/#application-inference)
+
+If you are explicitly calling out all running applications under `application` in your `mix.exs`, i.e. it looks something like this:
+
+```elixir
+def application do
+  [applications: [:logger, :plug, :postgrex]]
+end
+```
+
+Then, you need to add `mssql_ecto` and `mssqlex` to both your `deps` and list of running applications:
+
+```elixir
+def application do
+  [applications: [:logger, :plug, :mssqlex, :mssql_ecto]]
+end
+
+def deps do
+  [{:mssql_ecto, "~> 0.1"},
+   {:mssqlex, "~> 0.6"}]
 end
 ```
 
@@ -80,16 +98,9 @@ config :my_app, MyApp.Repo,
 | :float          | float              |                                     |
 | :decimal        | decimal            |                                     |
 
-## SQL Server version compatibility
-
-- [x] SQL Server 2016
-- [ ] SQL Server 2014
-- [ ] SQL Server 2012
-- [ ] SQL Server 2008
-
 ## Features not yet implemented
 
 * Table comments
 * Column comments
 * On conflict
-* Constraint checking
+* Upserts
