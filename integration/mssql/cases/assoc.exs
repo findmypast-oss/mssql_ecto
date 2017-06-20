@@ -256,11 +256,11 @@ defmodule Ecto.Integration.AssocTest do
       |> Ecto.Changeset.put_assoc(:comments, [Ecto.Changeset.change(c1, text: "11"),
                                               Ecto.Changeset.change(c2, text: "22")])
     post = TestRepo.update!(changeset)
-    [c1, _c2] = post.comments |> Enum.sort_by(&(&1.id))
+    [c1, _c2] = Enum.sort_by(post.comments, &(&1.id))
     assert c1.id
     assert c1.post_id == post.id
     post = TestRepo.get!(from(Post, preload: [:comments]), post.id)
-    [c1, c2] = post.comments |> Enum.sort_by(&(&1.id))
+    [c1, c2] = Enum.sort_by(post.comments, &(&1.id))
     assert c1.text == "11"
     assert c2.text == "22"
 
@@ -335,10 +335,10 @@ defmodule Ecto.Integration.AssocTest do
       |> Ecto.Changeset.put_assoc(:users, [Ecto.Changeset.change(u1, name: "11"),
                                            Ecto.Changeset.change(u2, name: "22")])
     post = TestRepo.update!(changeset)
-    [u1, _u2] = post.users |> Enum.sort_by(&(&1.id))
+    [u1, _u2] = Enum.sort_by(post.users, &(&1.id))
     assert u1.id
     post = TestRepo.get!(from(Post, preload: [:users]), post.id)
-    [u1, u2] = post.users |> Enum.sort_by(&(&1.id))
+    [u1, u2] = Enum.sort_by(post.users, &(&1.id))
     assert u1.name == "11"
     assert u2.name == "22"
 
