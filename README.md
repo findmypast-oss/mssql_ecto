@@ -104,3 +104,9 @@ config :my_app, MyApp.Repo,
 * Column comments
 * On conflict
 * Upserts
+
+## Contributing
+
+### Code of Conduct
+
+This project had a [Code of Conduct](https://github.com/findmypast-oss/mssql_ecto/blob/master/CODE_OF_CONDUCT.md) if you wish to contribute to this project, please abide by its rules.
