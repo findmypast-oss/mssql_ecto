@@ -36,7 +36,7 @@ Note, the lack of `:applications` key. Then, you just need to add the following 
 ```elixir
 def deps do
   [{:mssql_ecto, "~> 0.1"},
-   {:mssqlex, "~> 0.6"}]
+   {:mssqlex, "~> 0.7"}]
 end
 ```
 
@@ -59,7 +59,7 @@ end
 
 def deps do
   [{:mssql_ecto, "~> 0.1"},
-   {:mssqlex, "~> 0.6"}]
+   {:mssqlex, "~> 0.7"}]
 end
 ```
 
@@ -73,7 +73,8 @@ config :my_app, MyApp.Repo,
   database: "sql_server_db",
   username: "bob",
   password: "mySecurePa$$word",
-  hostname: "localhost"
+  hostname: "localhost",
+  port: "1433"
 ```
 
 ## Type Mappings
