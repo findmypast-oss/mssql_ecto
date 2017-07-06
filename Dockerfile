@@ -15,7 +15,9 @@ RUN curl https://packages.microsoft.com/keys/microsoft.asc | apt-key add - \
 RUN mix local.hex --force && \
     mix local.rebar --force
 
+RUN apt-get install -y --no-install-recommends make
+
 COPY . /usr/src/app
 WORKDIR /usr/src/app
 RUN mix do deps.get
-RUN chmod +x /usr/src/app/wait-for-it.sh 
+RUN chmod +x /usr/src/app/wait-for-it.sh
