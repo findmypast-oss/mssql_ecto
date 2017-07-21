@@ -5,6 +5,7 @@ services:
     environment:
       - ACCEPT_EULA=Y
       - SA_PASSWORD=TestPa$$word123
+      - MSSQL_TCP_PORT=9204
 
   mssql_ecto:
     build: .
@@ -12,8 +13,10 @@ services:
       - MIX_ENV=test
       - MSSQL_UID=sa
       - MSSQL_PWD=TestPa$$word123
-      - MSSQL_HST=tcp:sql_server,1433
+      - MSSQL_HST=sql_server
+      - MSSQL_IN=MSSQLSERVER
+      - MSSQL_PRT=9204
       - TRAVIS_JOB_ID=$TRAVIS_JOB_ID
     depends_on:
       - sql_server
-    command: ["./wait-for-it.sh", "sql_server:1433", "--", "mix", "coveralls.travis"]
+    command: ["./wait-for-it.sh", "sql_server:9204", "-s", "--", "mix", "coveralls.travis"]
