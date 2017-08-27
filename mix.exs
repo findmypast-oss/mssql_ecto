@@ -32,7 +32,8 @@ defmodule MssqlEcto.Mixfile do
      {:ecto, "~> 2.1"},
      {:ex_doc, "~> 0.15", only: :dev, runtime: false},
      {:excoveralls, "~> 0.6", only: :test},
-     {:inch_ex, "~> 0.5", only: :docs}]
+     {:inch_ex, "~> 0.5", only: :docs},
+     {:exfmt, "~> 0.4.0", only: :dev}]
   end
 
   defp package do
