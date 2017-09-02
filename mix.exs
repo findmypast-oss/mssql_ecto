@@ -29,7 +29,7 @@ defmodule MssqlEcto.Mixfile do
 
   defp deps do
     [{:mssqlex, "~> 0.8.0"},
-     {:ecto, "~> 2.1"},
+     {:ecto, "~> 2.2.0"},
      {:ex_doc, "~> 0.15", only: :dev, runtime: false},
      {:excoveralls, "~> 0.6", only: :test},
      {:inch_ex, "~> 0.5", only: :docs},

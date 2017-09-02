@@ -200,6 +200,15 @@ defmodule MssqlEcto.QueryString do
     Helpers.quote_qualified_name(field, sources, idx)
   end
 
+  def expr({:&, _, [idx]}, sources, query) do
+    {_source, name, _schema} = elem(sources, idx)
+
+    Helpers.error!(query, "Microsoft SQL Server requires a schema module when using selector " <>
+      "#{inspect name} but none was given. " <>
+      "Please specify a schema or specify exactly which fields from " <>
+      "#{inspect name} you desire")
+  end
+
   def expr({:&, _, [idx, fields, _counter]}, sources, query) do
     {_, name, schema} = elem(sources, idx)
     if is_nil(schema) and is_nil(fields) do
@@ -248,8 +257,14 @@ defmodule MssqlEcto.QueryString do
     end
   end
 
-  def expr(%Ecto.SubQuery{query: query, fields: fields}, _sources, _query) do
-    query.select.fields |> put_in(fields) |> Connection.all()
+  def expr(%Ecto.SubQuery{query: query} = subquery, _sources, _query) do
+    if Map.has_key?(subquery, :fields) do
+      query.select.fields
+      |> put_in(subquery.fields)
+      |> Connection.all()
+    else
+      Connection.all(query)
+    end
   end
 
   def expr({:fragment, _, [kw]}, _sources, query) when is_list(kw) or tuple_size(kw) == 3 do
