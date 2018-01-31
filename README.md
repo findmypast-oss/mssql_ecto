@@ -35,8 +35,8 @@ Note, the lack of `:applications` key. Then, you just need to add the following 
 
 ```elixir
 def deps do
-  [{:mssql_ecto, "~> 0.3.1"},
-   {:mssqlex, "~> 0.8.0"}]
+  [{:mssql_ecto, "~> 1.0.0"},
+   {:mssqlex, "~> 1.0.0"}]
 end
 ```
 
@@ -58,8 +58,8 @@ def application do
 end
 
 def deps do
-  [{:mssql_ecto, "~> 0.3.1"},
-   {:mssqlex, "~> 0.8.0"}]
+  [{:mssql_ecto, "~> 1.0.0"},
+   {:mssqlex, "~> 1.0.0"}]
 end
 ```
 
@@ -84,25 +84,25 @@ An example project using mssql_ecto with Docker has kindly been created by [Chas
 
 ## Type Mappings
 
-| Ecto Type       | SQL Server Type    | Caveats                             |
-|:---------------:|:------------------:|:-----------------------------------:|
-| :id             | int                |                                     |
-| :serial         | int identity(1, 1) |                                     |
-| :binary_id      | char(36)           |                                     |
-| :uuid           | char(36)           |                                     |
-| :string         | nvarchar           |                                     |
-| :binary         | nvarchar(4000)     | Limited size, not fully implemented |
-| :integer        | int                |                                     |
-| :boolean        | bit                |                                     |
-| {:array, type}  | list of type       | Not Supported                       |
-| :map            | nvarchar(4000)     | Not Supported                       |
-| {:map, _}       | nvarchar(4000)     | Not Supported                       |
-| :date           | date               |                                     |
-| :time           | time               | Can write but can't read            |
-| :utc_datetime   | datetime2          |                                     |
-| :naive_datetime | datetime2          |                                     |
-| :float          | float              |                                     |
-| :decimal        | decimal            |                                     |
+|    Ecto Type    |  SQL Server Type   |               Caveats               |
+| :-------------: | :----------------: | :---------------------------------: |
+|       :id       |        int         |                                     |
+|     :serial     | int identity(1, 1) |                                     |
+|   :binary_id    |      char(36)      |                                     |
+|      :uuid      |      char(36)      |                                     |
+|     :string     |      nvarchar      |                                     |
+|     :binary     |   nvarchar(4000)   | Limited size, not fully implemented |
+|    :integer     |        int         |                                     |
+|    :boolean     |        bit         |                                     |
+| {:array, type}  |    list of type    |            Not Supported            |
+|      :map       |   nvarchar(4000)   |            Not Supported            |
+|   {:map, \_}    |   nvarchar(4000)   |            Not Supported            |
+|      :date      |        date        |                                     |
+|      :time      |        time        |      Can write but can't read       |
+|  :utc_datetime  |     datetime2      |                                     |
+| :naive_datetime |     datetime2      |                                     |
+|     :float      |       float        |                                     |
+|    :decimal     |      decimal       |                                     |
 
 ## Features not yet implemented
 
