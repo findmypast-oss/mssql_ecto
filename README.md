@@ -78,6 +78,10 @@ config :my_app, MyApp.Repo,
   port: "1433"
 ```
 
+## Example Project
+
+An example project using mssql_ecto with Docker has kindly been created by [Chase Pursłey](https://github.com/cpursley). It can be viewed [here](https://github.com/cpursley/mssql_ecto_friends).
+
 ## Type Mappings
 
 | Ecto Type       | SQL Server Type    | Caveats                             |
