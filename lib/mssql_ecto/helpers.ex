@@ -1,5 +1,4 @@
 defmodule MssqlEcto.Helpers do
-
   alias MssqlEcto.QueryString
 
   def get_source(query, sources, ix, source) do
@@ -14,54 +13,72 @@ defmodule MssqlEcto.Helpers do
 
   def quote_name(name, quoter \\ ?")
   def quote_name(nil, _), do: []
+
   def quote_name(names, quoter) when is_list(names) do
     names
     |> Enum.filter(&(not is_nil(&1)))
-    |> intersperse_map(?., &(quote_name(&1, nil)))
+    |> intersperse_map(?., &quote_name(&1, nil))
     |> wrap_in(quoter)
   end
+
   def quote_name(name, quoter) when is_atom(name) do
     quote_name(Atom.to_string(name), quoter)
   end
+
   def quote_name(name, quoter) do
     if String.contains?(name, "\"") do
-      error!(nil, "bad name #{inspect name}")
+      error!(nil, "bad name #{inspect(name)}")
     end
+
     wrap_in(name, quoter)
   end
 
   def wrap_in(value, nil), do: value
+
   def wrap_in(value, {left_wrapper, right_wrapper}) do
     [left_wrapper, value, right_wrapper]
   end
+
   def wrap_in(value, wrapper) do
     [wrapper, value, wrapper]
   end
 
   def quote_table(prefix, name)
-  def quote_table(nil, name),    do: quote_name(name)
-  def quote_table(prefix, name), do: intersperse_map([prefix, name], ?., &quote_name/1)
+  def quote_table(nil, name), do: quote_name(name)
+
+  def quote_table(prefix, name),
+    do: intersperse_map([prefix, name], ?., &quote_name/1)
 
   def single_quote(value), do: value |> escape_string |> wrap_in(?')
 
   def intersperse_map(list, separator, mapper, acc \\ [])
-  def intersperse_map([], _separator, _mapper, acc),
-    do: acc
+  def intersperse_map([], _separator, _mapper, acc), do: acc
+
   def intersperse_map([elem], _separator, mapper, acc),
     do: [acc | mapper.(elem)]
+
   def intersperse_map([elem | rest], separator, mapper, acc),
-    do: intersperse_map(rest, separator, mapper, [acc, mapper.(elem), separator])
+    do:
+      intersperse_map(rest, separator, mapper, [acc, mapper.(elem), separator])
 
   def intersperse_reduce(list, separator, user_acc, reducer, acc \\ [])
+
   def intersperse_reduce([], _separator, user_acc, _reducer, acc),
     do: {acc, user_acc}
+
   def intersperse_reduce([elem], _separator, user_acc, reducer, acc) do
     {elem, user_acc} = reducer.(elem, user_acc)
     {[acc | elem], user_acc}
   end
+
   def intersperse_reduce([elem | rest], separator, user_acc, reducer, acc) do
     {elem, user_acc} = reducer.(elem, user_acc)
-    intersperse_reduce(rest, separator, user_acc, reducer, [acc, elem, separator])
+
+    intersperse_reduce(rest, separator, user_acc, reducer, [
+      acc,
+      elem,
+      separator
+    ])
   end
 
   def if_do(condition, value) do
@@ -72,27 +89,27 @@ defmodule MssqlEcto.Helpers do
     :binary.replace(value, "'", "''", [:global])
   end
 
-  def ecto_to_db({:array, t}),     do: [ecto_to_db(t), ?[, ?]]
-  def ecto_to_db(:id),             do: "int"
-  def ecto_to_db(:serial),         do: "int identity(1,1)"
-  def ecto_to_db(:binary_id),      do: "char(36)"
-  def ecto_to_db(:uuid),           do: "char(36)"
-  def ecto_to_db(:string),         do: "nvarchar"
-  def ecto_to_db(:binary),         do: "nvarchar(4000)"
-  def ecto_to_db(:integer),        do: "int"
-  def ecto_to_db(:boolean),        do: "bit"
-  def ecto_to_db(:map),            do: "nvarchar(4000)"
-  def ecto_to_db({:map, _}),       do: "nvarchar(4000)"
-  def ecto_to_db(:utc_datetime),   do: "datetime2"
+  def ecto_to_db({:array, t}), do: [ecto_to_db(t), ?[, ?]]
+  def ecto_to_db(:id), do: "int"
+  def ecto_to_db(:serial), do: "int identity(1,1)"
+  def ecto_to_db(:binary_id), do: "char(36)"
+  def ecto_to_db(:uuid), do: "char(36)"
+  def ecto_to_db(:string), do: "nvarchar"
+  def ecto_to_db(:binary), do: "nvarchar(4000)"
+  def ecto_to_db(:integer), do: "int"
+  def ecto_to_db(:boolean), do: "bit"
+  def ecto_to_db(:map), do: "nvarchar(4000)"
+  def ecto_to_db({:map, _}), do: "nvarchar(4000)"
+  def ecto_to_db(:utc_datetime), do: "datetime2"
   def ecto_to_db(:naive_datetime), do: "datetime2"
-  def ecto_to_db(:timestamp),      do: "datetime2"
-  def ecto_to_db(other),           do: Atom.to_string(other)
+  def ecto_to_db(:timestamp), do: "datetime2"
+  def ecto_to_db(other), do: Atom.to_string(other)
 
   def error!(nil, message) do
     raise ArgumentError, message
   end
+
   def error!(query, message) do
     raise Ecto.QueryError, query: query, message: message
   end
-
 end

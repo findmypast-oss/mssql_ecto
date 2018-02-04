@@ -10,35 +10,45 @@ defmodule Ecto.Integration.SandboxTest do
 
   test "include link to SQL sandbox on ownership errors" do
     assert_raise DBConnection.OwnershipError,
-             ~r"See Ecto.Adapters.SQL.Sandbox docs for more information.", fn ->
-      TestRepo.all(Post)
-    end
+                 ~r"See Ecto.Adapters.SQL.Sandbox docs for more information.",
+                 fn ->
+                   TestRepo.all(Post)
+                 end
   end
 
   test "can use the repository when checked out" do
-    assert_raise DBConnection.OwnershipError, ~r"cannot find ownership process", fn ->
-      TestRepo.all(Post)
-    end
+    assert_raise DBConnection.OwnershipError,
+                 ~r"cannot find ownership process",
+                 fn ->
+                   TestRepo.all(Post)
+                 end
+
     Sandbox.checkout(TestRepo)
     assert TestRepo.all(Post) == []
     Sandbox.checkin(TestRepo)
-    assert_raise DBConnection.OwnershipError, ~r"cannot find ownership process", fn ->
-      TestRepo.all(Post)
-    end
+
+    assert_raise DBConnection.OwnershipError,
+                 ~r"cannot find ownership process",
+                 fn ->
+                   TestRepo.all(Post)
+                 end
   end
 
   test "can use the repository when allowed from another process" do
-    assert_raise DBConnection.OwnershipError, ~r"cannot find ownership process", fn ->
-      TestRepo.all(Post)
-    end
+    assert_raise DBConnection.OwnershipError,
+                 ~r"cannot find ownership process",
+                 fn ->
+                   TestRepo.all(Post)
+                 end
 
     parent = self()
-    Task.start_link fn ->
+
+    Task.start_link(fn ->
       Sandbox.checkout(TestRepo)
       Sandbox.allow(TestRepo, self(), parent)
-      send parent, :allowed
+      send(parent, :allowed)
       :timer.sleep(:infinity)
-    end
+    end)
 
     assert_receive :allowed
     assert TestRepo.all(Post) == []
@@ -47,7 +57,7 @@ defmodule Ecto.Integration.SandboxTest do
   test "can use the repository when shared from another process" do
     Sandbox.checkout(TestRepo)
     Sandbox.mode(TestRepo, {:shared, self()})
-    assert Task.async(fn -> TestRepo.all(Post) end) |> Task.await == []
+    assert Task.async(fn -> TestRepo.all(Post) end) |> Task.await() == []
   after
     Sandbox.mode(TestRepo, :manual)
   end
@@ -85,19 +95,22 @@ defmodule Ecto.Integration.SandboxTest do
     TestRepo.query!("SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED")
 
     # Even inside a transaction
-    TestRepo.transaction fn ->
+    TestRepo.transaction(fn ->
       TestRepo.query!("SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED")
-    end
+    end)
   end
 
   test "disconnects sandbox on transaction timeouts" do
     Sandbox.checkout(TestRepo)
 
     assert capture_log(fn ->
-      TestRepo.transaction(fn ->
-        :timer.sleep(1001)
-      end, timeout: 1)
-    end) =~ "timed out"
+             TestRepo.transaction(
+               fn ->
+                 :timer.sleep(1001)
+               end,
+               timeout: 1
+             )
+           end) =~ "timed out"
 
     Sandbox.checkin(TestRepo)
   end
@@ -105,10 +118,10 @@ defmodule Ecto.Integration.SandboxTest do
   test "runs inside a sandbox even with failed queries" do
     Sandbox.checkout(TestRepo)
 
-    {:ok, _}    = TestRepo.insert(%Post{}, skip_transaction: true)
+    {:ok, _} = TestRepo.insert(%Post{}, skip_transaction: true)
     # This is a failed query but it should not taint the sandbox transaction
     {:error, _} = TestRepo.query("INVALID")
-    {:ok, _}    = TestRepo.insert(%Post{}, skip_transaction: true)
+    {:ok, _} = TestRepo.insert(%Post{}, skip_transaction: true)
 
     Sandbox.checkin(TestRepo)
   end
@@ -118,25 +131,26 @@ defmodule Ecto.Integration.SandboxTest do
     assert TestRepo.insert(%Post{})
     parent = self()
 
-    Task.start_link fn ->
+    Task.start_link(fn ->
       Sandbox.allow(TestRepo, parent, self())
       assert [_] = TestRepo.all(Post) |> TestRepo.preload([:author, :comments])
-      send parent, :success
-    end
+      send(parent, :success)
+    end)
 
     assert_receive :success
   end
 
   test "allows an ownership timeout to be passed for an individual `checkout` call" do
-    log = capture_log fn ->
-      :ok = Sandbox.checkout(TestRepo, ownership_timeout: 20)
+    log =
+      capture_log(fn ->
+        :ok = Sandbox.checkout(TestRepo, ownership_timeout: 20)
 
-      Process.sleep(1000)
+        Process.sleep(1000)
 
-      assert_raise DBConnection.OwnershipError, fn ->
-        TestRepo.all(Post)
-      end
-    end
+        assert_raise DBConnection.OwnershipError, fn ->
+          TestRepo.all(Post)
+        end
+      end)
 
     assert log =~ ~r/timed out.*20ms/
   end

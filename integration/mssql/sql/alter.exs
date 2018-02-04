@@ -9,14 +9,14 @@ defmodule Ecto.Integration.AlterTest do
 
     def up do
       create table(:alter_col_type) do
-        add :value, :integer
+        add(:value, :integer)
       end
 
-      execute "INSERT INTO alter_col_type (value) VALUES (1)"
+      execute("INSERT INTO alter_col_type (value) VALUES (1)")
     end
 
     def down do
-      drop table(:alter_col_type)
+      drop(table(:alter_col_type))
     end
   end
 
@@ -25,13 +25,13 @@ defmodule Ecto.Integration.AlterTest do
 
     def up do
       alter table(:alter_col_type) do
-        modify :value, :real
+        modify(:value, :real)
       end
     end
 
     def down do
       alter table(:alter_col_type) do
-        modify :value, :integer
+        modify(:value, :integer)
       end
     end
   end
@@ -40,12 +40,15 @@ defmodule Ecto.Integration.AlterTest do
   import Ecto.Migrator, only: [up: 4, down: 4]
 
   test "reset cache on returning query after alter column type" do
-    values = from v in "alter_col_type", select: v.value
+    values = from(v in "alter_col_type", select: v.value)
 
-    assert :ok == up(PoolRepo, 20161112120000, AlterMigrationOne, log: false)
+    assert :ok ==
+             up(PoolRepo, 20_161_112_120_000, AlterMigrationOne, log: false)
+
     assert PoolRepo.all(values) == [1]
 
-    assert :ok == up(PoolRepo, 20161112130000, AlterMigrationTwo, log: false)
+    assert :ok ==
+             up(PoolRepo, 20_161_112_130_000, AlterMigrationTwo, log: false)
 
     # optionally fail once with ArgumentError when preparing query prepared on
     # another connection (and clear cache)
@@ -60,15 +63,16 @@ defmodule Ecto.Integration.AlterTest do
         assert [%Decimal{}] = result
     end
 
-    PoolRepo.transaction(fn() ->
+    PoolRepo.transaction(fn ->
       assert [%Decimal{}] = PoolRepo.all(values)
 
-      assert :ok == down(PoolRepo, 20161112130000, AlterMigrationTwo, log: false)
+      assert :ok ==
+               down(PoolRepo, 20_161_112_130_000, AlterMigrationTwo, log: false)
 
       # optionally fail once with database error when already prepared on
       # connection (and clear cache)
       try do
-        PoolRepo.all(values, [mode: :savepoint])
+        PoolRepo.all(values, mode: :savepoint)
       catch
         :error, _ ->
           assert PoolRepo.all(values) == [1]
@@ -77,41 +81,46 @@ defmodule Ecto.Integration.AlterTest do
           assert result == [1]
       end
     end)
-
   after
-    assert :ok == down(PoolRepo, 20161112120000, AlterMigrationOne, log: false)
+    assert :ok ==
+             down(PoolRepo, 20_161_112_120_000, AlterMigrationOne, log: false)
   end
 
   test "reset cache on paramterised query after alter column type" do
-    values = from v in "alter_col_type"
+    values = from(v in "alter_col_type")
 
-    assert :ok == up(PoolRepo, 20161112120000, AlterMigrationOne, log: false)
-    assert PoolRepo.update_all(values, [set: [value: 2]]) == {1, nil}
+    assert :ok ==
+             up(PoolRepo, 20_161_112_120_000, AlterMigrationOne, log: false)
 
-    assert :ok == up(PoolRepo, 20161112130000, AlterMigrationTwo, log: false)
+    assert PoolRepo.update_all(values, set: [value: 2]) == {1, nil}
+
+    assert :ok ==
+             up(PoolRepo, 20_161_112_130_000, AlterMigrationTwo, log: false)
 
     # optionally fail once with ArgumentError when preparing query prepared on
     # another connection (and clear cache)
     try do
-      PoolRepo.update_all(values, [set: [value: 3]])
+      PoolRepo.update_all(values, set: [value: 3])
     rescue
       err in [ArgumentError] ->
         assert Exception.message(err) =~ "stale type"
-        assert PoolRepo.update_all(values, [set: [value: 4]]) == {1, nil}
+        assert PoolRepo.update_all(values, set: [value: 4]) == {1, nil}
     else
       result ->
         assert result == {1, nil}
     end
 
-    PoolRepo.transaction(fn() ->
-      assert PoolRepo.update_all(values, [set: [value: Decimal.new(5)]]) == {1, nil}
+    PoolRepo.transaction(fn ->
+      assert PoolRepo.update_all(values, set: [value: Decimal.new(5)]) ==
+               {1, nil}
 
-      assert :ok == down(PoolRepo, 20161112130000, AlterMigrationTwo, log: false)
+      assert :ok ==
+               down(PoolRepo, 20_161_112_130_000, AlterMigrationTwo, log: false)
 
-      assert PoolRepo.update_all(values, [set: [value: 6]]) == {1, nil}
+      assert PoolRepo.update_all(values, set: [value: 6]) == {1, nil}
     end)
-
   after
-    assert :ok == down(PoolRepo, 20161112120000, AlterMigrationOne, log: false)
+    assert :ok ==
+             down(PoolRepo, 20_161_112_120_000, AlterMigrationOne, log: false)
   end
 end
