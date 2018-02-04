@@ -316,10 +316,13 @@ defmodule MssqlEcto.QueryString do
   def expr({:&, _, [idx]}, sources, query) do
     {_source, name, _schema} = elem(sources, idx)
 
-    Helpers.error!(query, "Microsoft SQL Server requires a schema module when using selector " <>
-      "#{inspect name} but none was given. " <>
-      "Please specify a schema or specify exactly which fields from " <>
-      "#{inspect name} you desire")
+    Helpers.error!(
+      query,
+      "Microsoft SQL Server requires a schema module when using selector " <>
+        "#{inspect(name)} but none was given. " <>
+        "Please specify a schema or specify exactly which fields from " <>
+        "#{inspect(name)} you desire"
+    )
   end
 
   def expr({:&, _, [idx, fields, _counter]}, sources, query) do

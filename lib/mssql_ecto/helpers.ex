@@ -89,19 +89,19 @@ defmodule MssqlEcto.Helpers do
     :binary.replace(value, "'", "''", [:global])
   end
 
-  def ecto_to_db({:array, t}),     do: [ecto_to_db(t), ?[, ?]]
-  def ecto_to_db(:id),             do: "int"
-  def ecto_to_db(:serial),         do: "int identity(1,1)"
-  def ecto_to_db(:bigserial),      do: "bigint identity(1,1)"
-  def ecto_to_db(:binary_id),      do: "char(36)"
-  def ecto_to_db(:uuid),           do: "char(36)"
-  def ecto_to_db(:string),         do: "nvarchar"
-  def ecto_to_db(:binary),         do: "nvarchar(4000)"
-  def ecto_to_db(:integer),        do: "int"
-  def ecto_to_db(:boolean),        do: "bit"
-  def ecto_to_db(:map),            do: "nvarchar(4000)"
-  def ecto_to_db({:map, _}),       do: "nvarchar(4000)"
-  def ecto_to_db(:utc_datetime),   do: "datetime2"
+  def ecto_to_db({:array, t}), do: [ecto_to_db(t), ?[, ?]]
+  def ecto_to_db(:id), do: "int"
+  def ecto_to_db(:serial), do: "int identity(1,1)"
+  def ecto_to_db(:bigserial), do: "bigint identity(1,1)"
+  def ecto_to_db(:binary_id), do: "char(36)"
+  def ecto_to_db(:uuid), do: "char(36)"
+  def ecto_to_db(:string), do: "nvarchar"
+  def ecto_to_db(:binary), do: "nvarchar(4000)"
+  def ecto_to_db(:integer), do: "int"
+  def ecto_to_db(:boolean), do: "bit"
+  def ecto_to_db(:map), do: "nvarchar(4000)"
+  def ecto_to_db({:map, _}), do: "nvarchar(4000)"
+  def ecto_to_db(:utc_datetime), do: "datetime2"
   def ecto_to_db(:naive_datetime), do: "datetime2"
   def ecto_to_db(:timestamp), do: "datetime2"
   def ecto_to_db(other), do: Atom.to_string(other)
