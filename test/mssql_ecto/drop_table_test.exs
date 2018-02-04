@@ -4,7 +4,7 @@ defmodule MssqlEcto.DropTableTest do
   import Ecto.Migration, only: [table: 1, table: 2]
 
   alias MssqlEcto.Connection, as: SQL
-  
+
   test "drop table" do
     drop = {:drop, table(:posts)}
     assert execute_ddl(drop) == [~s|DROP TABLE "posts"|]

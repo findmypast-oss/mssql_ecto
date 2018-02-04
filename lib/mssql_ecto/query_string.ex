@@ -1,14 +1,23 @@
 defmodule MssqlEcto.QueryString do
-
   alias Ecto.Query
   alias Ecto.Query.{BooleanExpr, JoinExpr, QueryExpr}
   alias MssqlEcto.Connection
   alias MssqlEcto.Helpers
 
-  binary_ops =
-    [==: " = ", !=: " != ", <=: " <= ", >=: " >= ", <: " < ", >: " > ",
-     and: " AND ", or: " OR ", ilike: " ILIKE ", like: " LIKE ", in: " IN ",
-     is_nil: " WHERE "]
+  binary_ops = [
+    ==: " = ",
+    !=: " != ",
+    <=: " <= ",
+    >=: " >= ",
+    <: " < ",
+    >: " > ",
+    and: " AND ",
+    or: " OR ",
+    ilike: " ILIKE ",
+    like: " LIKE ",
+    in: " IN ",
+    is_nil: " WHERE "
+  ]
 
   @binary_ops Keyword.keys(binary_ops)
 
@@ -18,8 +27,17 @@ defmodule MssqlEcto.QueryString do
 
   def handle_call(fun, _arity), do: {:fun, Atom.to_string(fun)}
 
-  def select(%Query{select: %{fields: fields}} = query, select_distinct, sources) do
-    ["SELECT", top(query, sources), select_distinct, ?\s | select_fields(fields, sources, query)]
+  def select(
+        %Query{select: %{fields: fields}} = query,
+        select_distinct,
+        sources
+      ) do
+    [
+      "SELECT",
+      top(query, sources),
+      select_distinct,
+      ?\s | select_fields(fields, sources, query)
+    ]
   end
 
   def top(%Query{offset: nil, limit: %QueryExpr{expr: expr}} = query, sources) do
@@ -30,12 +48,13 @@ defmodule MssqlEcto.QueryString do
     []
   end
 
-  def select_fields([], _sources, _query),
-    do: "'TRUE'"
+  def select_fields([], _sources, _query), do: "'TRUE'"
+
   def select_fields(fields, sources, query) do
     Helpers.intersperse_map(fields, ", ", fn
       {key, value} ->
         [expr(value, sources, query), " AS " | Helpers.quote_name(key)]
+
       value ->
         expr(value, sources, query)
     end)
@@ -45,10 +64,15 @@ defmodule MssqlEcto.QueryString do
   def distinct(%QueryExpr{expr: []}, _, _), do: {[], []}
   def distinct(%QueryExpr{expr: true}, _, _), do: {" DISTINCT", []}
   def distinct(%QueryExpr{expr: false}, _, _), do: {[], []}
+
   def distinct(%QueryExpr{expr: exprs}, sources, query) do
-    {[" DISTINCT ON (",
-      Helpers.intersperse_map(exprs, ", ", fn {_, expr} -> expr(expr, sources, query) end), ?)],
-     exprs}
+    {[
+       " DISTINCT ON (",
+       Helpers.intersperse_map(exprs, ", ", fn {_, expr} ->
+         expr(expr, sources, query)
+       end),
+       ?)
+     ], exprs}
   end
 
   def from(%{from: from} = query, sources) do
@@ -57,10 +81,13 @@ defmodule MssqlEcto.QueryString do
   end
 
   def update_fields(%Query{updates: updates} = query, sources) do
-    for(%{expr: expr} <- updates,
-        {op, kw} <- expr,
-        {key, value} <- kw,
-        do: update_op(op, key, value, sources, query)) |> Enum.intersperse(", ")
+    for(
+      %{expr: expr} <- updates,
+      {op, kw} <- expr,
+      {key, value} <- kw,
+      do: update_op(op, key, value, sources, query)
+    )
+    |> Enum.intersperse(", ")
   end
 
   def update_op(:set, key, value, sources, query) do
@@ -68,33 +95,60 @@ defmodule MssqlEcto.QueryString do
   end
 
   def update_op(:inc, key, value, sources, query) do
-    [Helpers.quote_name(key), " = ", Helpers.quote_qualified_name(key, sources, 0), " + " |
-     expr(value, sources, query)]
+    [
+      Helpers.quote_name(key),
+      " = ",
+      Helpers.quote_qualified_name(key, sources, 0),
+      " + "
+      | expr(value, sources, query)
+    ]
   end
 
   def update_op(:push, key, value, sources, query) do
-    [Helpers.quote_name(key), " = array_append(", Helpers.quote_qualified_name(key, sources, 0),
-     ", ", expr(value, sources, query), ?)]
+    [
+      Helpers.quote_name(key),
+      " = array_append(",
+      Helpers.quote_qualified_name(key, sources, 0),
+      ", ",
+      expr(value, sources, query),
+      ?)
+    ]
   end
 
   def update_op(:pull, key, value, sources, query) do
-    [Helpers.quote_name(key), " = array_remove(", Helpers.quote_qualified_name(key, sources, 0),
-     ", ", expr(value, sources, query), ?)]
+    [
+      Helpers.quote_name(key),
+      " = array_remove(",
+      Helpers.quote_qualified_name(key, sources, 0),
+      ", ",
+      expr(value, sources, query),
+      ?)
+    ]
   end
 
   def update_op(command, _key, _value, _sources, query) do
-    Helpers.error!(query, "Unknown update operation #{inspect command} for Microsoft SQL Server")
+    Helpers.error!(
+      query,
+      "Unknown update operation #{inspect(command)} for Microsoft SQL Server"
+    )
   end
 
   def using_join(%Query{joins: []}, _kind, _prefix, _sources), do: {[], []}
+
   def using_join(%Query{joins: joins} = query, kind, prefix, sources) do
     froms =
       Helpers.intersperse_map(joins, ", ", fn
         %JoinExpr{qual: :inner, ix: ix, source: source} ->
           {join, name} = Helpers.get_source(query, sources, ix, source)
           [join, " AS " | name]
+
         %JoinExpr{qual: qual} ->
-          Helpers.error!(query, "Microsoft SQL Server supports only inner joins on #{kind}, got: `#{qual}`")
+          Helpers.error!(
+            query,
+            "Microsoft SQL Server supports only inner joins on #{kind}, got: `#{
+              qual
+            }`"
+          )
       end)
 
     wheres =
@@ -106,20 +160,35 @@ defmodule MssqlEcto.QueryString do
   end
 
   def join(%Query{joins: []}, _sources), do: []
+
   def join(%Query{joins: joins} = query, sources) do
-    [?\s | Helpers.intersperse_map(joins, ?\s, fn
-      %JoinExpr{on: %QueryExpr{expr: expr}, qual: qual, ix: ix, source: source} ->
-        {join, name} = Helpers.get_source(query, sources, ix, source)
-        [join_qual(qual), join, " AS ", name, " ON " | paren_expr(expr, sources, query)]
-    end)]
+    [
+      ?\s
+      | Helpers.intersperse_map(joins, ?\s, fn %JoinExpr{
+                                                 on: %QueryExpr{expr: expr},
+                                                 qual: qual,
+                                                 ix: ix,
+                                                 source: source
+                                               } ->
+          {join, name} = Helpers.get_source(query, sources, ix, source)
+
+          [
+            join_qual(qual),
+            join,
+            " AS ",
+            name,
+            " ON " | paren_expr(expr, sources, query)
+          ]
+        end)
+    ]
   end
 
   def join_qual(:inner), do: "INNER JOIN "
   def join_qual(:inner_lateral), do: "INNER JOIN LATERAL "
-  def join_qual(:left),  do: "LEFT OUTER JOIN "
-  def join_qual(:left_lateral),  do: "LEFT OUTER JOIN LATERAL "
+  def join_qual(:left), do: "LEFT OUTER JOIN "
+  def join_qual(:left_lateral), do: "LEFT OUTER JOIN LATERAL "
   def join_qual(:right), do: "RIGHT OUTER JOIN "
-  def join_qual(:full),  do: "FULL OUTER JOIN "
+  def join_qual(:full), do: "FULL OUTER JOIN "
   def join_qual(:cross), do: "CROSS JOIN "
 
   def where(%Query{wheres: wheres} = query, sources) do
@@ -131,59 +200,102 @@ defmodule MssqlEcto.QueryString do
   end
 
   def group_by(%Query{group_bys: []}, _sources), do: []
+
   def group_by(%Query{group_bys: group_bys} = query, sources) do
-    [" GROUP BY " |
-     Helpers.intersperse_map(group_bys, ", ", fn
-       %QueryExpr{expr: expr} ->
-         Helpers.intersperse_map(expr, ", ", &expr(&1, sources, query))
-     end)]
+    [
+      " GROUP BY "
+      | Helpers.intersperse_map(group_bys, ", ", fn %QueryExpr{expr: expr} ->
+          Helpers.intersperse_map(expr, ", ", &expr(&1, sources, query))
+        end)
+    ]
   end
 
   def order_by(%Query{order_bys: []}, _distinct, _sources), do: []
+
   def order_by(%Query{order_bys: order_bys} = query, distinct, sources) do
     order_bys = Enum.flat_map(order_bys, & &1.expr)
-    [" ORDER BY " |
-     Helpers.intersperse_map(distinct ++ order_bys, ", ", &order_by_expr(&1, sources, query))]
+
+    [
+      " ORDER BY "
+      | Helpers.intersperse_map(
+          distinct ++ order_bys,
+          ", ",
+          &order_by_expr(&1, sources, query)
+        )
+    ]
   end
 
   def order_by_expr({dir, expr}, sources, query) do
     str = expr(expr, sources, query)
+
     case dir do
-      :asc  -> str
+      :asc -> str
       :desc -> [str | " DESC"]
     end
   end
 
   def offset(%Query{offset: nil, limit: nil}, _sources), do: []
-  def offset(%Query{offset: nil, limit: %QueryExpr{expr: expr}} = query, sources) do
+
+  def offset(
+        %Query{offset: nil, limit: %QueryExpr{expr: expr}} = query,
+        sources
+      ) do
     []
   end
-  def offset(%Query{offset: %QueryExpr{expr: offset_expr}, limit: %QueryExpr{expr: limit_expr}} = query, sources) do
-    [" OFFSET ", expr(offset_expr, sources, query), " ROWS FETCH NEXT ", expr(limit_expr, sources, query), " ROWS ONLY"]
+
+  def offset(
+        %Query{
+          offset: %QueryExpr{expr: offset_expr},
+          limit: %QueryExpr{expr: limit_expr}
+        } = query,
+        sources
+      ) do
+    [
+      " OFFSET ",
+      expr(offset_expr, sources, query),
+      " ROWS FETCH NEXT ",
+      expr(limit_expr, sources, query),
+      " ROWS ONLY"
+    ]
   end
+
   def offset(%Query{offset: %QueryExpr{expr: expr}} = query, sources) do
-    [" OFFSET " , expr(expr, sources, query), " ROWS"]
+    [" OFFSET ", expr(expr, sources, query), " ROWS"]
   end
 
   def lock(nil), do: []
   def lock(lock_clause), do: [?\s | lock_clause]
 
   def boolean(_name, [], _sources, _query), do: []
+
   def boolean(name, [%{expr: expr, op: op} | query_exprs], sources, query) do
-    [name |
-     Enum.reduce(query_exprs, {op, paren_expr(expr, sources, query)}, fn
-       %BooleanExpr{expr: expr, op: op}, {op, acc} ->
-         {op, [acc, operator_to_boolean(op), paren_expr(expr, sources, query)]}
-       %BooleanExpr{expr: expr, op: op}, {_, acc} ->
-         {op, [?(, acc, ?), operator_to_boolean(op), paren_expr(expr, sources, query)]}
-     end) |> elem(1)]
+    [
+      name
+      | Enum.reduce(query_exprs, {op, paren_expr(expr, sources, query)}, fn
+          %BooleanExpr{expr: expr, op: op}, {op, acc} ->
+            {op,
+             [acc, operator_to_boolean(op), paren_expr(expr, sources, query)]}
+
+          %BooleanExpr{expr: expr, op: op}, {_, acc} ->
+            {op,
+             [
+               ?(,
+               acc,
+               ?),
+               operator_to_boolean(op),
+               paren_expr(expr, sources, query)
+             ]}
+        end)
+        |> elem(1)
+    ]
   end
 
   def operator_to_boolean(:and), do: " AND "
   def operator_to_boolean(:or), do: " OR "
 
-  def paren_expr(false, _sources, _query),  do: "(0=1)"
-  def paren_expr(true, _sources, _query),   do: "(1=1)"
+  def paren_expr(false, _sources, _query), do: "(0=1)"
+  def paren_expr(true, _sources, _query), do: "(1=1)"
+
   def paren_expr(expr, sources, query) do
     [?(, expr(expr, sources, query), ?)]
   end
@@ -193,10 +305,11 @@ defmodule MssqlEcto.QueryString do
   end
 
   def expr({:^, [], [ix]}, _sources, _query) do
-    [?? , Integer.to_string(ix + 1)]
+    [??, Integer.to_string(ix + 1)]
   end
 
-  def expr({{:., _, [{:&, _, [idx]}, field]}, _, []}, sources, _query) when is_atom(field) do
+  def expr({{:., _, [{:&, _, [idx]}, field]}, _, []}, sources, _query)
+      when is_atom(field) do
     Helpers.quote_qualified_name(field, sources, idx)
   end
 
@@ -211,12 +324,17 @@ defmodule MssqlEcto.QueryString do
 
   def expr({:&, _, [idx, fields, _counter]}, sources, query) do
     {_, name, schema} = elem(sources, idx)
+
     if is_nil(schema) and is_nil(fields) do
-      Helpers.error!(query, "Microsoft SQL Server requires a schema module when using selector " <>
-        "#{inspect name} but none was given. " <>
-        "Please specify a schema or specify exactly which fields from " <>
-        "#{inspect name} you desire")
+      Helpers.error!(
+        query,
+        "Microsoft SQL Server requires a schema module when using selector " <>
+          "#{inspect(name)} but none was given. " <>
+          "Please specify a schema or specify exactly which fields from " <>
+          "#{inspect(name)} you desire"
+      )
     end
+
     Helpers.intersperse_map(fields, ", ", &[name, ?. | Helpers.quote_name(&1)])
   end
 
@@ -235,8 +353,9 @@ defmodule MssqlEcto.QueryString do
 
   def expr({:in, _, [left, {:^, _, [ix, length]}]}, sources, query) do
     args =
-        Enum.map(ix+1..ix+length, fn (i) -> [??, to_string(i)] end)
-        |> Enum.intersperse(?,)
+      Enum.map((ix + 1)..(ix + length), fn i -> [??, to_string(i)] end)
+      |> Enum.intersperse(?,)
+
     [expr(left, sources, query), " IN (", args, ?)]
   end
 
@@ -252,6 +371,7 @@ defmodule MssqlEcto.QueryString do
     case expr do
       {fun, _, _} when fun in @binary_ops ->
         ["NOT (", expr(expr, sources, query), ?)]
+
       _ ->
         ["~(", expr(expr, sources, query), ?)]
     end
@@ -267,25 +387,41 @@ defmodule MssqlEcto.QueryString do
     end
   end
 
-  def expr({:fragment, _, [kw]}, _sources, query) when is_list(kw) or tuple_size(kw) == 3 do
-    Helpers.error!(query, "Microsoft SQL Server adapter does not support keyword or interpolated fragments")
+  def expr({:fragment, _, [kw]}, _sources, query)
+      when is_list(kw) or tuple_size(kw) == 3 do
+    Helpers.error!(
+      query,
+      "Microsoft SQL Server adapter does not support keyword or interpolated fragments"
+    )
   end
 
   def expr({:fragment, _, parts}, sources, query) do
     Enum.map(parts, fn
-      {:raw, part}  -> part
+      {:raw, part} -> part
       {:expr, expr} -> expr(expr, sources, query)
     end)
   end
 
   def expr({:datetime_add, _, [datetime, count, interval]}, sources, query) do
-    ["CAST(DATEADD(", interval, ",", expr(count, sources, query),
-      ",", expr(datetime, sources, query) | ") AS DATETIME2)"]
+    [
+      "CAST(DATEADD(",
+      interval,
+      ",",
+      expr(count, sources, query),
+      ",",
+      expr(datetime, sources, query) | ") AS DATETIME2)"
+    ]
   end
 
   def expr({:date_add, _, [date, count, interval]}, sources, query) do
-    ["CAST(DATEADD(", interval, ",", expr(count, sources, query),
-      ",", expr(date, sources, query) | ") AS DATE)"]
+    [
+      "CAST(DATEADD(",
+      interval,
+      ",",
+      expr(count, sources, query),
+      ",",
+      expr(date, sources, query) | ") AS DATE)"
+    ]
   end
 
   def expr({fun, _, args}, sources, query) when is_atom(fun) and is_list(args) do
@@ -298,9 +434,20 @@ defmodule MssqlEcto.QueryString do
     case handle_call(fun, length(args)) do
       {:binary_op, op} ->
         [left, right] = args
-        [op_to_binary(left, sources, query), op | op_to_binary(right, sources, query)]
+
+        [
+          op_to_binary(left, sources, query),
+          op | op_to_binary(right, sources, query)
+        ]
+
       {:fun, fun} ->
-        [fun, ?(, modifier, Helpers.intersperse_map(args, ", ", &expr(&1, sources, query)), ?)]
+        [
+          fun,
+          ?(,
+          modifier,
+          Helpers.intersperse_map(args, ", ", &expr(&1, sources, query)),
+          ?)
+        ]
     end
   end
 
@@ -318,11 +465,17 @@ defmodule MssqlEcto.QueryString do
   end
 
   def expr(%Ecto.Query.Tagged{value: other, type: type}, sources, query) do
-    ["CAST(", expr(other, sources, query), " AS ", Helpers.ecto_to_db(type), ")"]
+    [
+      "CAST(",
+      expr(other, sources, query),
+      " AS ",
+      Helpers.ecto_to_db(type),
+      ")"
+    ]
   end
 
-  def expr(nil, _sources, _query),   do: "NULL"
-  def expr(true, _sources, _query),  do: "1"
+  def expr(nil, _sources, _query), do: "NULL"
+  def expr(true, _sources, _query), do: "1"
   def expr(false, _sources, _query), do: "0"
 
   def expr(literal, _sources, _query) when is_binary(literal) do
@@ -341,7 +494,8 @@ defmodule MssqlEcto.QueryString do
     [expr(count, sources, query)]
   end
 
-  def op_to_binary({op, _, [_, _]} = expr, sources, query) when op in @binary_ops do
+  def op_to_binary({op, _, [_, _]} = expr, sources, query)
+      when op in @binary_ops do
     paren_expr(expr, sources, query)
   end
 
@@ -349,15 +503,18 @@ defmodule MssqlEcto.QueryString do
     expr(expr, sources, query)
   end
 
-  def returning(%Query{select: nil}, _sources),
-    do: []
+  def returning(%Query{select: nil}, _sources), do: []
+
   def returning(%Query{select: %{fields: fields}} = query, sources),
     do: [" RETURNING " | select_fields(fields, sources, query)]
 
-  def returning([]),
-    do: []
+  def returning([]), do: []
+
   def returning(returning),
-    do: [" RETURNING " | Helpers.intersperse_map(returning, ", ", &Helpers.quote_name/1)]
+    do: [
+      " RETURNING "
+      | Helpers.intersperse_map(returning, ", ", &Helpers.quote_name/1)
+    ]
 
   def create_names(%{prefix: prefix, sources: sources}) do
     create_names(prefix, sources, 0, tuple_size(sources)) |> List.to_tuple()
@@ -369,11 +526,14 @@ defmodule MssqlEcto.QueryString do
         {table, schema} ->
           name = [String.first(table) | Integer.to_string(pos)]
           {Helpers.quote_table(prefix, table), name, schema}
+
         {:fragment, _, _} ->
           {nil, [?f | Integer.to_string(pos)], nil}
+
         %Ecto.SubQuery{} ->
           {nil, [?s | Integer.to_string(pos)], nil}
       end
+
     [current | create_names(prefix, sources, pos + 1, limit)]
   end
 

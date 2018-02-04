@@ -10,7 +10,14 @@ defmodule Ecto.Integration.SQLTest do
   test "fragmented types" do
     datetime = ~N[2014-01-16 20:26:51.000000]
     TestRepo.insert!(%Post{inserted_at: datetime})
-    query = from p in Post, where: fragment("? >= ?", p.inserted_at, ^datetime), select: p.inserted_at
+
+    query =
+      from(
+        p in Post,
+        where: fragment("? >= ?", p.inserted_at, ^datetime),
+        select: p.inserted_at
+      )
+
     assert [^datetime] = TestRepo.all(query)
   end
 
@@ -32,8 +39,13 @@ defmodule Ecto.Integration.SQLTest do
     assert sql =~ "SELECT"
     assert sql =~ "barebones"
 
-    {sql, [0]} = Ecto.Adapters.SQL.to_sql(:update_all, TestRepo,
-                                          from(b in Barebone, update: [set: [num: ^0]]))
+    {sql, [0]} =
+      Ecto.Adapters.SQL.to_sql(
+        :update_all,
+        TestRepo,
+        from(b in Barebone, update: [set: [num: ^0]])
+      )
+
     assert sql =~ "UPDATE"
     assert sql =~ "barebones"
     assert sql =~ "SET"
@@ -52,7 +64,7 @@ defmodule Ecto.Integration.SQLTest do
 
   test "Repo.update! escape" do
     p = TestRepo.insert!(%Post{title: "hello"})
-    TestRepo.update!(Ecto.Changeset.change p, title: "'")
+    TestRepo.update!(Ecto.Changeset.change(p, title: "'"))
 
     query = from(p in Post, select: p.title)
     assert ["'"] == TestRepo.all(query)

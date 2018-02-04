@@ -11,7 +11,7 @@ defmodule Ecto.Integration.LockTest do
     use Ecto.Schema
 
     schema "lock_counters" do
-      field :count, :integer
+      field(:count, :integer)
     end
   end
 
@@ -26,7 +26,7 @@ defmodule Ecto.Integration.LockTest do
 
     lock_for_update =
       Application.get_env(:ecto, :lock_for_update) ||
-      raise ":lock_for_update not set in :ecto application"
+        raise ":lock_for_update not set in :ecto application"
 
     # Here we are manually inserting the lock in the query
     # to test multiple adapters. Never do this in actual
@@ -35,21 +35,26 @@ defmodule Ecto.Integration.LockTest do
     query = %{query | lock: lock_for_update}
 
     {:ok, new_pid} =
-      Task.start_link fn ->
+      Task.start_link(fn ->
         assert_receive :select_for_update, 5000
 
         PoolRepo.transaction(fn ->
-          [post] = PoolRepo.all(query) # this should block until the other trans. commit
-          post |> Ecto.Changeset.change(count: post.count + 1) |> PoolRepo.update!
+          # this should block until the other trans. commit
+          [post] = PoolRepo.all(query)
+
+          post |> Ecto.Changeset.change(count: post.count + 1)
+          |> PoolRepo.update!()
         end)
 
-        send pid, :updated
-      end
+        send(pid, :updated)
+      end)
 
     PoolRepo.transaction(fn ->
-      [post] = PoolRepo.all(query)       # select and lock the row
-      send new_pid, :select_for_update   # signal second process to begin a transaction
-      post |> Ecto.Changeset.change(count: post.count + 1) |> PoolRepo.update!
+      # select and lock the row
+      [post] = PoolRepo.all(query)
+      # signal second process to begin a transaction
+      send(new_pid, :select_for_update)
+      post |> Ecto.Changeset.change(count: post.count + 1) |> PoolRepo.update!()
     end)
 
     assert_receive :updated, 5000
