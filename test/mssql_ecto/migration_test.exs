@@ -1,9 +1,7 @@
 defmodule MssqlEcto.MigrationTest do
-  use ExUnit.Case, async: true
+  use MssqlEcto.Case, async: true
 
   import Ecto.Migration, only: [table: 1, table: 2]
-
-  alias MssqlEcto.Connection, as: SQL
 
   test "executing a string during migration" do
     assert execute_ddl("example") == ["example"]

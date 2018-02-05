@@ -1,9 +1,7 @@
 defmodule MssqlEcto.InsertTest do
-  use ExUnit.Case, async: true
+  use MssqlEcto.Case, async: true
 
   import Ecto.Query
-
-  alias MssqlEcto.Connection, as: SQL
 
   test "insert" do
     query =
@@ -106,12 +104,5 @@ defmodule MssqlEcto.InsertTest do
 
     assert query ==
              ~s{INSERT INTO "schema" ("x","y") VALUES ($1,$2) ON CONFLICT DO UPDATE SET "x" = EXCLUDED."x","y" = EXCLUDED."y"}
-  end
-
-  defp normalize(query, operation, counter \\ 0) do
-    {query, _params, _key} =
-      Ecto.Query.Planner.prepare(query, operation, MssqlEcto, counter)
-
-    Ecto.Query.Planner.normalize(query, operation, MssqlEcto, counter)
   end
 end

@@ -1,9 +1,7 @@
 defmodule MssqlEcto.DropTableTest do
-  use ExUnit.Case, async: true
+  use MssqlEcto.Case, async: true
 
   import Ecto.Migration, only: [table: 1, table: 2]
-
-  alias MssqlEcto.Connection, as: SQL
 
   test "drop table" do
     drop = {:drop, table(:posts)}

@@ -1,10 +1,8 @@
 defmodule MssqlEcto.DeleteAllTest do
-  use ExUnit.Case, async: true
+  use MssqlEcto.Case, async: true
 
   import Ecto.Query
-
   alias Ecto.Queryable
-  alias MssqlEcto.Connection, as: SQL
 
   defmodule Schema do
     use Ecto.Schema
@@ -100,12 +98,5 @@ defmodule MssqlEcto.DeleteAllTest do
 
     assert SQL.delete_all(%{query | prefix: "prefix"}) ==
              ~s{DELETE s0 FROM "prefix"."schema" AS s0}
-  end
-
-  defp normalize(query, operation \\ :all, counter \\ 0) do
-    {query, _params, _key} =
-      Ecto.Query.Planner.prepare(query, operation, MssqlEcto, counter)
-
-    Ecto.Query.Planner.normalize(query, operation, MssqlEcto, counter)
   end
 end

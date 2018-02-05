@@ -1,7 +1,5 @@
 defmodule MssqlEcto.DeleteTest do
-  use ExUnit.Case, async: true
-
-  alias MssqlEcto.Connection, as: SQL
+  use MssqlEcto.Case, async: true
 
   test "delete" do
     query = SQL.delete(nil, "schema", [:x, :y], [])

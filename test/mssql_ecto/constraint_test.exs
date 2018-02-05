@@ -1,9 +1,7 @@
 defmodule MssqlEcto.ConstraintTest do
-  use ExUnit.Case, async: true
+  use MssqlEcto.Case, async: true
 
   import Ecto.Migration, only: [constraint: 2, constraint: 3]
-
-  alias MssqlEcto.Connection, as: SQL
 
   test "create check constraint" do
     create =

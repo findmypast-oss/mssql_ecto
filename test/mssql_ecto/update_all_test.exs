@@ -1,9 +1,7 @@
 defmodule MssqlEcto.UpdateAllTest do
-  use ExUnit.Case, async: true
+  use MssqlEcto.Case, async: true
 
   import Ecto.Query
-
-  alias MssqlEcto.Query, as: SQL
 
   defmodule Schema do
     use Ecto.Schema
@@ -129,12 +127,5 @@ defmodule MssqlEcto.UpdateAllTest do
 
     assert SQL.update_all(%{query | prefix: "prefix"}) ==
              ~s{UPDATE s0 SET "x" = 0 FROM "prefix"."schema" AS s0}
-  end
-
-  defp normalize(query, operation, counter \\ 0) do
-    {query, _params, _key} =
-      Ecto.Query.Planner.prepare(query, operation, MssqlEcto, counter)
-
-    Ecto.Query.Planner.normalize(query, operation, MssqlEcto, counter)
   end
 end

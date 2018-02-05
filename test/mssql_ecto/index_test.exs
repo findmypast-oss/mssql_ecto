@@ -1,9 +1,7 @@
 defmodule MssqlEcto.IndexTest do
-  use ExUnit.Case, async: true
+  use MssqlEcto.Case, async: true
 
   import Ecto.Migration, only: [index: 2, index: 3]
-
-  alias MssqlEcto.Connection, as: SQL
 
   test "create index" do
     create = {:create, index(:posts, [:category_id, :permalink])}
