@@ -49,17 +49,26 @@ defmodule MssqlEcto.CreateTableTest do
          {:add, :id, :serial, [primary_key: true]},
          {:add, :category_0, %Reference{table: :categories}, []},
          {:add, :category_1, %Reference{table: :categories, name: :foo_bar}, []},
-         {:add, :category_2, %Reference{table: :categories, on_delete: :nothing}, []},
-         {:add, :category_3, %Reference{table: :categories, on_delete: :delete_all},
+         {:add, :category_2,
+          %Reference{table: :categories, on_delete: :nothing}, []},
+         {:add, :category_3,
+          %Reference{table: :categories, on_delete: :delete_all},
           [null: false]},
-         {:add, :category_4, %Reference{table: :categories, on_delete: :nilify_all},
-          []},
-         {:add, :category_5, %Reference{table: :categories, on_update: :nothing}, []},
-         {:add, :category_6, %Reference{table: :categories, on_update: :update_all},
+         {:add, :category_4,
+          %Reference{table: :categories, on_delete: :nilify_all}, []},
+         {:add, :category_5,
+          %Reference{table: :categories, on_update: :nothing}, []},
+         {:add, :category_6,
+          %Reference{table: :categories, on_update: :update_all},
           [null: false]},
-         {:add, :category_7, %Reference{table: :categories, on_update: :nilify_all},
-          []},
-         {:add, :category_8, %Reference{table: :categories, on_delete: :nilify_all, on_update: :update_all}, [null: false]}
+         {:add, :category_7,
+          %Reference{table: :categories, on_update: :nilify_all}, []},
+         {:add, :category_8,
+          %Reference{
+            table: :categories,
+            on_delete: :nilify_all,
+            on_update: :update_all
+          }, [null: false]}
        ]}
 
     assert execute_ddl(create) == [

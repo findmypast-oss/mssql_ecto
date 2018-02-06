@@ -47,8 +47,7 @@ defmodule MssqlEcto.AlterTableTest do
       {:alter, table(:posts, prefix: :foo),
        [
          {:add, :author_id, %Reference{table: :author}, []},
-         {:modify, :permalink_id, %Reference{table: :permalinks},
-          null: false}
+         {:modify, :permalink_id, %Reference{table: :permalinks}, null: false}
        ]}
 
     assert execute_ddl(alter) == [
