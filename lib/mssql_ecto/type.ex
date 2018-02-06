@@ -57,7 +57,8 @@ defmodule MssqlEcto.Type do
 
   def decode(value, type)
       when type in [:date] and is_binary(value) do
-    Ecto.Date.cast!(value) |> Ecto.Date.dump()
+    result = value |> Date.from_iso8601!() |> Date.to_erl()
+    {:ok, result}
   end
 
   def decode(value, _type) do
