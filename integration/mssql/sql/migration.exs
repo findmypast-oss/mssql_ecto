@@ -84,7 +84,7 @@ defmodule Ecto.Integration.MigrationTest do
       create(table(:alter_fk_users))
 
       create table(:alter_fk_posts) do
-        add(:alter_fk_user_id, :id)
+        add(:alter_fk_user_id, :bigint)
       end
 
       alter table(:alter_fk_posts) do
