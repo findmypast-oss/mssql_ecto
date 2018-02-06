@@ -923,9 +923,9 @@ defmodule Ecto.Integration.RepoTest do
              )
 
     [p1, p2, p3] = Enum.sort_by(posts, & &1.id)
-    assert p1 == %{id: id1, title: "x"}
-    assert p2 == %{id: id2, title: "x"}
-    assert p3 == %{id: id3, title: "x"}
+    assert p1 == %{id: "#{id1}", title: "x"}
+    assert p2 == %{id: "#{id2}", title: "x"}
+    assert p3 == %{id: "#{id3}", title: "x"}
   end
 
   test "update all with filter" do
@@ -1036,9 +1036,9 @@ defmodule Ecto.Integration.RepoTest do
     assert {3, posts} = TestRepo.delete_all("posts", returning: [:id, :title])
 
     [p1, p2, p3] = Enum.sort_by(posts, & &1.id)
-    assert p1 == %{id: id1, title: "1"}
-    assert p2 == %{id: id2, title: "2"}
-    assert p3 == %{id: id3, title: "3"}
+    assert p1 == %{id: "#{id1}", title: "1"}
+    assert p2 == %{id: "#{id2}", title: "2"}
+    assert p3 == %{id: "#{id3}", title: "3"}
   end
 
   test "delete all with filter" do
@@ -1158,9 +1158,9 @@ defmodule Ecto.Integration.RepoTest do
     assert p3 == %{title: "3"}
 
     [p1, p2, p3] = "posts" |> select([:id]) |> order_by([:id]) |> TestRepo.all()
-    assert p1 == %{id: pid1}
-    assert p2 == %{id: pid2}
-    assert p3 == %{id: pid3}
+    assert p1 == %{id: "#{pid1}"}
+    assert p2 == %{id: "#{pid2}"}
+    assert p3 == %{id: "#{pid3}"}
   end
 
   test "query select take with assocs" do

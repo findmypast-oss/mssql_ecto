@@ -649,8 +649,8 @@ defmodule Ecto.Integration.AssocTest do
     [[pid2, uid2]] =
       TestRepo.all(from(j in "posts_users", select: [j.post_id, j.user_id]))
 
-    assert pid2 == p2.id
-    assert uid2 == u2.id
+    assert pid2 == "#{p2.id}"
+    assert uid2 == "#{u2.id}"
 
     [uid1, uid2] = TestRepo.all(from(u in User, select: u.id))
     assert uid1 == u1.id

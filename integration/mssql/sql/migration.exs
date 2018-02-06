@@ -363,10 +363,10 @@ defmodule Ecto.Integration.MigrationTest do
     PoolRepo.query!(writer)
 
     reader = from(r in "ref_migration", select: {r.parent1, r.parent2})
-    assert PoolRepo.all(reader) == [{parent1.id, parent2.id}]
+    assert PoolRepo.all(reader) == [{"#{parent1.id}", "#{parent2.id}"}]
 
     PoolRepo.delete!(parent1)
-    assert PoolRepo.all(reader) == [{nil, parent2.id}]
+    assert PoolRepo.all(reader) == [{nil, "#{parent2.id}"}]
 
     PoolRepo.delete!(parent2)
     assert PoolRepo.all(reader) == []
