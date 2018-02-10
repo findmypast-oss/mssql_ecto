@@ -13,12 +13,13 @@ defmodule Ecto.Integration.SubQueryTest do
 
     query = from(p in Post, select: p)
     assert ["hello"] = TestRepo.all(from(p in subquery(query), select: p.text))
+    assert [post] = TestRepo.all(from(p in subquery(query), select: p))
 
-    assert [%Post{inserted_at: %NaiveDateTime{}}] =
-             TestRepo.all(from(p in subquery(query), select: p))
+    assert %NaiveDateTime{} = post.inserted_at
+    assert post.__meta__.state == :loaded
   end
 
-  test "from: subqueries with select expression" do
+  test "from: subqueries with map and select expression" do
     TestRepo.insert!(%Post{text: "hello", public: true})
 
     query = from(p in Post, select: %{text: p.text, pub: not p.public})
@@ -32,6 +33,32 @@ defmodule Ecto.Integration.SubQueryTest do
 
     assert [{%{text: "hello", pub: false}, false}] =
              TestRepo.all(from(p in subquery(query), select: {p, p.pub}))
+  end
+
+  test "from: subqueries with map update and select expression" do
+    TestRepo.insert!(%Post{text: "hello", public: true})
+
+    query = from(p in Post, select: %{p | public: not p.public})
+    assert ["hello"] = TestRepo.all(from(p in subquery(query), select: p.text))
+
+    assert [%Post{text: "hello", public: false}] =
+             TestRepo.all(from(p in subquery(query), select: p))
+
+    assert [{"hello", %Post{text: "hello", public: false}}] =
+             TestRepo.all(from(p in subquery(query), select: {p.text, p}))
+
+    assert [{%Post{text: "hello", public: false}, false}] =
+             TestRepo.all(from(p in subquery(query), select: {p, p.public}))
+  end
+
+  test "from: subqueries with map update on virtual field and select expression" do
+    TestRepo.insert!(%Post{text: "hello"})
+
+    query = from(p in Post, select: %{p | temp: p.text})
+    assert ["hello"] = TestRepo.all(from(p in subquery(query), select: p.temp))
+
+    assert [%Post{text: "hello", temp: "hello"}] =
+             TestRepo.all(from(p in subquery(query), select: p))
   end
 
   test "from: subqueries with aggregates" do
