@@ -16,7 +16,7 @@ services:
       - MSSQL_HST=sql_server
       - MSSQL_IN=MSSQLSERVER
       - MSSQL_PRT=9204
-      - MSSQL_DVR={ODBC Driver 13 for SQL Server}
+      - MSSQL_DVR={ODBC Driver 17 for SQL Server}
       - TRAVIS_JOB_ID=$TRAVIS_JOB_ID
     depends_on:
       - sql_server
