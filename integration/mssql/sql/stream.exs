@@ -1,6 +1,5 @@
 defmodule Ecto.Integration.StreamTest do
   use Ecto.Integration.Case, async: true
-  @moduletag :integration
 
   alias Ecto.Integration.TestRepo
   alias Ecto.Integration.Post

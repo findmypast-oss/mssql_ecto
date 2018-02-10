@@ -1,6 +1,5 @@
 defmodule Ecto.Integration.SandboxTest do
   use ExUnit.Case
-  @moduletag :integration
 
   alias Ecto.Adapters.SQL.Sandbox
   alias Ecto.Integration.TestRepo

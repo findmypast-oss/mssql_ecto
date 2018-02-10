@@ -11,7 +11,6 @@ defmodule MssqlEcto.Mixfile do
       start_permanent: Mix.env() == :prod,
       deps: deps(),
       package: package(),
-      aliases: aliases(),
       test_paths: ["integration/mssql", "test"],
       test_coverage: [tool: ExCoveralls],
       preferred_cli_env: [
@@ -47,13 +46,6 @@ defmodule MssqlEcto.Mixfile do
       maintainers: ["Steven Blowers", "Jae Bach Hardie"],
       licenses: ["Apache 2.0"],
       links: %{"GitHub" => "https://github.com/findmypast-oss/mssql_ecto"}
-    ]
-  end
-
-  defp aliases do
-    [
-      "test.integration": "test --only integration",
-      "test.unit": "test --exclude integration"
     ]
   end
 end
