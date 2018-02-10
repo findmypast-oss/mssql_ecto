@@ -6,7 +6,6 @@ ExUnit.start(
     :map_type,
     :uses_usec,
     :uses_msec,
-    :parallel_preloader,
     :modify_foreign_key_on_update,
     :create_index_if_not_exists,
     :not_supported_by_sql_server,
