@@ -58,7 +58,7 @@ defmodule Ecto.Integration.RepoTest do
     # Still doesn't work after the query cache.
     assert_raise Ecto.Query.CastError, fn ->
       TestRepo.all(from(p in Post, where: p.title in ^nil))
-  end
+    end
   end
 
   test "fetch without schema" do
@@ -1163,158 +1163,158 @@ defmodule Ecto.Integration.RepoTest do
 
   describe "query select" do
     test "expressions" do
-    %Post{} = TestRepo.insert!(%Post{title: "1", text: "hai"})
+      %Post{} = TestRepo.insert!(%Post{title: "1", text: "hai"})
 
-    assert [{"1", "hai"}] ==
-             TestRepo.all(from(p in Post, select: {p.title, p.text}))
+      assert [{"1", "hai"}] ==
+               TestRepo.all(from(p in Post, select: {p.title, p.text}))
 
-    assert [["1", "hai"]] ==
-             TestRepo.all(from(p in Post, select: [p.title, p.text]))
+      assert [["1", "hai"]] ==
+               TestRepo.all(from(p in Post, select: [p.title, p.text]))
 
-    assert [%{:title => "1", 3 => "hai", "text" => "hai"}] ==
-             TestRepo.all(
-               from(
-                 p in Post,
-                 select: %{
-                   :title => p.title,
-                   "text" => p.text,
-                   3 => p.text
-                 }
+      assert [%{:title => "1", 3 => "hai", "text" => "hai"}] ==
+               TestRepo.all(
+                 from(
+                   p in Post,
+                   select: %{
+                     :title => p.title,
+                     "text" => p.text,
+                     3 => p.text
+                   }
+                 )
                )
-             )
 
-    assert [%{:title => "1", "1" => "hai", "text" => "hai"}] ==
-             TestRepo.all(
-               from(
-                 p in Post,
-                 select: %{
-                   :title => p.title,
-                   p.title => p.text,
-                   "text" => p.text
-                 }
+      assert [%{:title => "1", "1" => "hai", "text" => "hai"}] ==
+               TestRepo.all(
+                 from(
+                   p in Post,
+                   select: %{
+                     :title => p.title,
+                     p.title => p.text,
+                     "text" => p.text
+                   }
+                 )
                )
-             )
 
       assert [%Foo{title: "1"}] ==
                TestRepo.all(from(p in Post, select: %Foo{title: p.title}))
-  end
+    end
 
     test "map update" do
-    %Post{} = TestRepo.insert!(%Post{title: "1", text: "hai"})
+      %Post{} = TestRepo.insert!(%Post{title: "1", text: "hai"})
 
-    assert [%Post{:title => "new title", text: "hai"}] =
-             TestRepo.all(from(p in Post, select: %{p | title: "new title"}))
+      assert [%Post{:title => "new title", text: "hai"}] =
+               TestRepo.all(from(p in Post, select: %{p | title: "new title"}))
 
       assert [%Post{title: "new title", text: "hai"}] =
                TestRepo.all(
                  from(p in Post, select: %Post{p | title: "new title"})
                )
 
-    assert_raise KeyError, fn ->
-      TestRepo.all(from(p in Post, select: %{p | unknown: "new title"}))
-    end
+      assert_raise KeyError, fn ->
+        TestRepo.all(from(p in Post, select: %{p | unknown: "new title"}))
+      end
 
-    assert_raise BadMapError, fn ->
-      TestRepo.all(from(p in Post, select: %{p.title | title: "new title"}))
-    end
+      assert_raise BadMapError, fn ->
+        TestRepo.all(from(p in Post, select: %{p.title | title: "new title"}))
+      end
 
       assert_raise BadStructError, fn ->
         TestRepo.all(from(p in Post, select: %Foo{p | title: p.title}))
-  end
-  end
+      end
+    end
 
     test "take with structs" do
-    %{id: pid1} = TestRepo.insert!(%Post{title: "1"})
-    %{id: pid2} = TestRepo.insert!(%Post{title: "2"})
-    %{id: pid3} = TestRepo.insert!(%Post{title: "3"})
+      %{id: pid1} = TestRepo.insert!(%Post{title: "1"})
+      %{id: pid2} = TestRepo.insert!(%Post{title: "2"})
+      %{id: pid3} = TestRepo.insert!(%Post{title: "3"})
 
-    [p1, p2, p3] =
-      Post |> select([p], struct(p, [:title])) |> order_by([:title])
-      |> TestRepo.all()
+      [p1, p2, p3] =
+        Post |> select([p], struct(p, [:title])) |> order_by([:title])
+        |> TestRepo.all()
 
-    refute p1.id
-    assert p1.title == "1"
-    assert match?(%Post{}, p1)
-    refute p2.id
-    assert p2.title == "2"
-    assert match?(%Post{}, p2)
-    refute p3.id
-    assert p3.title == "3"
-    assert match?(%Post{}, p3)
+      refute p1.id
+      assert p1.title == "1"
+      assert match?(%Post{}, p1)
+      refute p2.id
+      assert p2.title == "2"
+      assert match?(%Post{}, p2)
+      refute p3.id
+      assert p3.title == "3"
+      assert match?(%Post{}, p3)
 
-    [p1, p2, p3] = Post |> select([:id]) |> order_by([:id]) |> TestRepo.all()
-    assert %Post{id: ^pid1} = p1
-    assert %Post{id: ^pid2} = p2
-    assert %Post{id: ^pid3} = p3
-  end
+      [p1, p2, p3] = Post |> select([:id]) |> order_by([:id]) |> TestRepo.all()
+      assert %Post{id: ^pid1} = p1
+      assert %Post{id: ^pid2} = p2
+      assert %Post{id: ^pid3} = p3
+    end
 
     test "take with maps" do
-    %{id: pid1} = TestRepo.insert!(%Post{title: "1"})
-    %{id: pid2} = TestRepo.insert!(%Post{title: "2"})
-    %{id: pid3} = TestRepo.insert!(%Post{title: "3"})
+      %{id: pid1} = TestRepo.insert!(%Post{title: "1"})
+      %{id: pid2} = TestRepo.insert!(%Post{title: "2"})
+      %{id: pid3} = TestRepo.insert!(%Post{title: "3"})
 
-    [p1, p2, p3] =
-      "posts" |> select([p], map(p, [:title])) |> order_by([:title])
-      |> TestRepo.all()
+      [p1, p2, p3] =
+        "posts" |> select([p], map(p, [:title])) |> order_by([:title])
+        |> TestRepo.all()
 
-    assert p1 == %{title: "1"}
-    assert p2 == %{title: "2"}
-    assert p3 == %{title: "3"}
+      assert p1 == %{title: "1"}
+      assert p2 == %{title: "2"}
+      assert p3 == %{title: "3"}
 
       [p1, p2, p3] =
         "posts" |> select([:id]) |> order_by([:id]) |> TestRepo.all()
 
-    assert p1 == %{id: "#{pid1}"}
-    assert p2 == %{id: "#{pid2}"}
-    assert p3 == %{id: "#{pid3}"}
-  end
+      assert p1 == %{id: "#{pid1}"}
+      assert p2 == %{id: "#{pid2}"}
+      assert p3 == %{id: "#{pid3}"}
+    end
 
     test "take with preload assocs" do
-    %{id: pid} = TestRepo.insert!(%Post{title: "post"})
-    TestRepo.insert!(%Comment{post_id: pid, text: "comment"})
-    fields = [:id, :title, comments: [:text, :post_id]]
+      %{id: pid} = TestRepo.insert!(%Post{title: "post"})
+      TestRepo.insert!(%Comment{post_id: pid, text: "comment"})
+      fields = [:id, :title, comments: [:text, :post_id]]
 
-    [p] = Post |> preload(:comments) |> select([p], ^fields) |> TestRepo.all()
-    assert %Post{title: "post"} = p
-    assert [%Comment{text: "comment"}] = p.comments
+      [p] = Post |> preload(:comments) |> select([p], ^fields) |> TestRepo.all()
+      assert %Post{title: "post"} = p
+      assert [%Comment{text: "comment"}] = p.comments
 
-    [p] =
-      Post |> preload(:comments) |> select([p], struct(p, ^fields))
-      |> TestRepo.all()
+      [p] =
+        Post |> preload(:comments) |> select([p], struct(p, ^fields))
+        |> TestRepo.all()
 
-    assert %Post{title: "post"} = p
-    assert [%Comment{text: "comment"}] = p.comments
+      assert %Post{title: "post"} = p
+      assert [%Comment{text: "comment"}] = p.comments
 
-    [p] =
-      Post |> preload(:comments) |> select([p], map(p, ^fields))
-      |> TestRepo.all()
+      [p] =
+        Post |> preload(:comments) |> select([p], map(p, ^fields))
+        |> TestRepo.all()
 
-    assert p == %{
-             id: pid,
-             title: "post",
-             comments: [%{text: "comment", post_id: pid}]
-           }
-  end
+      assert p == %{
+               id: pid,
+               title: "post",
+               comments: [%{text: "comment", post_id: pid}]
+             }
+    end
 
     test "take with nil preload assoc" do
-    %{id: cid} = TestRepo.insert!(%Comment{text: "comment"})
-    fields = [:id, :text, post: [:title]]
+      %{id: cid} = TestRepo.insert!(%Comment{text: "comment"})
+      fields = [:id, :text, post: [:title]]
 
-    [c] = Comment |> preload(:post) |> select([c], ^fields) |> TestRepo.all()
-    assert %Comment{id: ^cid, text: "comment", post: nil} = c
+      [c] = Comment |> preload(:post) |> select([c], ^fields) |> TestRepo.all()
+      assert %Comment{id: ^cid, text: "comment", post: nil} = c
 
-    [c] =
-      Comment |> preload(:post) |> select([c], struct(c, ^fields))
-      |> TestRepo.all()
+      [c] =
+        Comment |> preload(:post) |> select([c], struct(c, ^fields))
+        |> TestRepo.all()
 
-    assert %Comment{id: ^cid, text: "comment", post: nil} = c
+      assert %Comment{id: ^cid, text: "comment", post: nil} = c
 
-    [c] =
-      Comment |> preload(:post) |> select([c], map(c, ^fields))
-      |> TestRepo.all()
+      [c] =
+        Comment |> preload(:post) |> select([c], map(c, ^fields))
+        |> TestRepo.all()
 
-    assert c == %{id: cid, text: "comment", post: nil}
-  end
+      assert c == %{id: cid, text: "comment", post: nil}
+    end
 
     test "take with join assocs" do
       %{id: pid} = TestRepo.insert!(%Post{title: "post"})
