@@ -1,9 +1,7 @@
 defmodule MssqlEcto.SelectTest do
-  use ExUnit.Case, async: true
+  use MssqlEcto.Case, async: true
 
   import Ecto.Query
-
-  alias MssqlEcto.Connection, as: SQL
 
   defmodule Schema do
     use Ecto.Schema
@@ -525,12 +523,5 @@ defmodule MssqlEcto.SelectTest do
         "WHERE (s0.\"start_time\" = \"query?\")"
 
     assert SQL.all(query) == String.trim(result)
-  end
-
-  defp normalize(query, operation \\ :all, counter \\ 0) do
-    {query, _params, _key} =
-      Ecto.Query.Planner.prepare(query, operation, MssqlEcto, counter)
-
-    Ecto.Query.Planner.normalize(query, operation, MssqlEcto, counter)
   end
 end

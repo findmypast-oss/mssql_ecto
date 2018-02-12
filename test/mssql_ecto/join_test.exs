@@ -1,9 +1,7 @@
 defmodule MssqlEcto.JoinTest do
-  use ExUnit.Case, async: true
+  use MssqlEcto.Case, async: true
 
   import Ecto.Query
-
-  alias MssqlEcto.Connection, as: SQL
 
   defmodule Schema do
     use Ecto.Schema
@@ -235,12 +233,5 @@ defmodule MssqlEcto.JoinTest do
 
     assert SQL.all(query) ==
              "SELECT s0.\"id\", s1.\"id\" FROM \"schema\" AS s0 CROSS JOIN \"schema2\" AS s1 ON (1=1)"
-  end
-
-  defp normalize(query, operation \\ :all, counter \\ 0) do
-    {query, _params, _key} =
-      Ecto.Query.Planner.prepare(query, operation, MssqlEcto, counter)
-
-    Ecto.Query.Planner.normalize(query, operation, MssqlEcto, counter)
   end
 end

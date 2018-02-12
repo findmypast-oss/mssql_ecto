@@ -2,8 +2,6 @@ defmodule Ecto.Integration.JoinsTest do
   use Ecto.Integration.Case,
     async: Application.get_env(:ecto, :async_integration_tests, true)
 
-  @moduletag :integration
-
   alias Ecto.Integration.TestRepo
   import Ecto.Query
 
@@ -112,7 +110,8 @@ defmodule Ecto.Integration.JoinsTest do
     p2 = TestRepo.insert!(%Post{title: "2"})
     c1 = TestRepo.insert!(%Permalink{url: "1", post_id: p2.id})
 
-    permalink = from(c in Permalink, where: c.url == ^"1")
+    # Joined query without parameter
+    permalink = from(c in Permalink, where: c.url == "1")
 
     query =
       from(
@@ -123,6 +122,9 @@ defmodule Ecto.Integration.JoinsTest do
       )
 
     assert [{^p2, ^c1}] = TestRepo.all(query)
+
+    # Joined query witho parameter
+    permalink = from(c in Permalink, where: c.url == "1")
 
     query =
       from(
@@ -196,7 +198,7 @@ defmodule Ecto.Integration.JoinsTest do
         order_by: p.id
       )
 
-    assert [{^post, ^c1}, {^post, ^c2}] = TestRepo.all(query)
+    [{^post, ^c1}, {^post, ^c2}] = TestRepo.all(query)
   end
 
   test "has_one association join" do
@@ -212,7 +214,7 @@ defmodule Ecto.Integration.JoinsTest do
         order_by: c.id
       )
 
-    assert [{^post, ^p1}, {^post, ^p2}] = TestRepo.all(query)
+    [{^post, ^p1}, {^post, ^p2}] = TestRepo.all(query)
   end
 
   test "belongs_to association join" do
@@ -228,7 +230,7 @@ defmodule Ecto.Integration.JoinsTest do
         order_by: p.id
       )
 
-    assert [{^p1, ^post}, {^p2, ^post}] = TestRepo.all(query)
+    [{^p1, ^post}, {^p2, ^post}] = TestRepo.all(query)
   end
 
   test "has_many through association join" do
@@ -489,7 +491,7 @@ defmodule Ecto.Integration.JoinsTest do
   end
 
   ## Nested
-  @tag :parallel_preloader
+
   test "nested assoc" do
     %Post{id: pid1} = TestRepo.insert!(%Post{title: "1"})
     %Post{id: pid2} = TestRepo.insert!(%Post{title: "2"})

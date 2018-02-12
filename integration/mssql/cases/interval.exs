@@ -2,8 +2,6 @@ defmodule Ecto.Integration.IntervalTest do
   use Ecto.Integration.Case,
     async: Application.get_env(:ecto, :async_integration_tests, true)
 
-  @moduletag :integration
-
   alias Ecto.Integration.Post
   alias Ecto.Integration.TestRepo
   import Ecto.Query
@@ -162,35 +160,6 @@ defmodule Ecto.Integration.IntervalTest do
 
   test "date_add with dynamic" do
     posted = @posted
-
-    assert ["2015-01-01"] =
-             TestRepo.all(
-               from(p in Post, select: date_add(^posted, ^1, ^"year"))
-             )
-
-    assert ["2014-04-01"] =
-             TestRepo.all(
-               from(p in Post, select: date_add(^posted, ^3, ^"month"))
-             )
-
-    assert ["2014-01-22"] =
-             TestRepo.all(
-               from(p in Post, select: date_add(^posted, ^3, ^"week"))
-             )
-
-    assert ["2014-01-06"] =
-             TestRepo.all(
-               from(p in Post, select: date_add(^posted, ^5, ^"day"))
-             )
-
-    assert ["2014-01-03"] =
-             TestRepo.all(
-               from(p in Post, select: date_add(^posted, ^48, ^"hour"))
-             )
-  end
-
-  test "date_add with Ecto.Date" do
-    posted = @posted |> Date.to_erl() |> Ecto.Date.from_erl()
 
     assert ["2015-01-01"] =
              TestRepo.all(
@@ -647,48 +616,6 @@ defmodule Ecto.Integration.IntervalTest do
 
   test "datetime_add with dynamic in filters" do
     inserted_at = @inserted_at
-    field = :inserted_at
-
-    assert [_] =
-             TestRepo.all(
-               from(
-                 p in Post,
-                 where:
-                   p.inserted_at > datetime_add(^inserted_at, ^(-1), "year")
-               )
-             )
-
-    assert [_] =
-             TestRepo.all(
-               from(
-                 p in Post,
-                 where: p.inserted_at > datetime_add(^inserted_at, -3, "month")
-               )
-             )
-
-    assert [_] =
-             TestRepo.all(
-               from(
-                 p in Post,
-                 where:
-                   field(p, ^field) > datetime_add(^inserted_at, ^(-3), ^"week")
-               )
-             )
-
-    assert [_] =
-             TestRepo.all(
-               from(
-                 p in Post,
-                 where:
-                   field(p, ^field) > datetime_add(^inserted_at, -5, ^"day")
-               )
-             )
-  end
-
-  test "datetime_add with Ecto.DateTime" do
-    inserted_at =
-      @inserted_at |> NaiveDateTime.to_erl() |> Ecto.DateTime.from_erl()
-
     field = :inserted_at
 
     assert [_] =

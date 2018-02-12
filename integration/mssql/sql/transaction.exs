@@ -2,7 +2,6 @@ defmodule Ecto.Integration.TransactionTest do
   # We can keep this test async as long as it
   # is the only one access the transactions table
   use Ecto.Integration.Case, async: true
-  @moduletag :integration
 
   import Ecto.Query
   # Used for writes

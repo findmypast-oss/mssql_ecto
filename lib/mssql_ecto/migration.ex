@@ -444,6 +444,7 @@ defmodule MssqlEcto.Migration do
     do: quote_name(name)
 
   defp reference_column_type(:serial, _opts), do: "int"
+  defp reference_column_type(:bigserial, _opts), do: "bigint"
   defp reference_column_type(type, opts), do: column_type(type, opts)
 
   defp reference_on_delete(:nilify_all), do: " ON DELETE SET NULL"

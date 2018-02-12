@@ -1,20 +1,18 @@
 defmodule MssqlEcto.AlterTableTest do
-  use ExUnit.Case, async: true
+  use MssqlEcto.Case, async: true
 
-  import Ecto.Migration,
-    only: [table: 1, table: 2, references: 1, references: 2]
-
-  alias MssqlEcto.Connection, as: SQL
+  import Ecto.Migration, only: [table: 1, table: 2]
+  alias Ecto.Migration.Reference
 
   test "alter table" do
     alter =
       {:alter, table(:posts),
        [
          {:add, :title, :string, [default: "Untitled", size: 100, null: false]},
-         {:add, :author_id, references(:author), []},
+         {:add, :author_id, %Reference{table: :author}, []},
          {:modify, :price, :numeric, [precision: 8, scale: 2, null: true]},
          {:modify, :cost, :integer, [null: false, default: nil]},
-         {:modify, :permalink_id, references(:permalinks), null: false},
+         {:modify, :permalink_id, %Reference{table: :permalinks}, null: false},
          {:remove, :summary}
        ]}
 
@@ -23,7 +21,7 @@ defmodule MssqlEcto.AlterTableTest do
              ALTER TABLE "posts"
              ADD
              "title" nvarchar(100) CONSTRAINT "posts_title_default" DEFAULT 'Untitled' NOT NULL,
-             "author_id" int CONSTRAINT "posts_author_id_fkey" REFERENCES "author"("id");
+             "author_id" bigint CONSTRAINT "posts_author_id_fkey" REFERENCES "author"("id");
              ALTER TABLE "posts"
              ALTER COLUMN "price" numeric(8,2) NULL;
              ALTER TABLE "posts"
@@ -34,7 +32,7 @@ defmodule MssqlEcto.AlterTableTest do
              ALTER TABLE "posts"
              ADD CONSTRAINT "posts_permalink_id_fkey" FOREIGN KEY ("permalink_id") REFERENCES "permalinks"("id");
              ALTER TABLE "posts"
-             ALTER COLUMN "permalink_id" int NOT NULL;
+             ALTER COLUMN "permalink_id" bigint NOT NULL;
              ALTER TABLE "posts"
              DROP CONSTRAINT "posts_pk";
              ALTER TABLE "posts"
@@ -48,19 +46,18 @@ defmodule MssqlEcto.AlterTableTest do
     alter =
       {:alter, table(:posts, prefix: :foo),
        [
-         {:add, :author_id, references(:author, prefix: :foo), []},
-         {:modify, :permalink_id, references(:permalinks, prefix: :foo),
-          null: false}
+         {:add, :author_id, %Reference{table: :author}, []},
+         {:modify, :permalink_id, %Reference{table: :permalinks}, null: false}
        ]}
 
     assert execute_ddl(alter) == [
              """
              ALTER TABLE "foo"."posts"
-             ADD "author_id" int CONSTRAINT "posts_author_id_fkey" REFERENCES "foo"."author"("id");
+             ADD "author_id" bigint CONSTRAINT "posts_author_id_fkey" REFERENCES "foo"."author"("id");
              ALTER TABLE "foo"."posts"
              ADD CONSTRAINT "posts_permalink_id_fkey" FOREIGN KEY ("permalink_id") REFERENCES "foo"."permalinks"("id");
              ALTER TABLE "foo"."posts"
-             ALTER COLUMN "permalink_id" int NOT NULL;
+             ALTER COLUMN "permalink_id" bigint NOT NULL;
              """
              |> remove_newlines
            ]

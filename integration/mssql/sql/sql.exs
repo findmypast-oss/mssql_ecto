@@ -1,6 +1,5 @@
 defmodule Ecto.Integration.SQLTest do
   use Ecto.Integration.Case, async: true
-  @moduletag :integration
 
   alias Ecto.Integration.TestRepo
   alias Ecto.Integration.Barebone
@@ -21,6 +20,15 @@ defmodule Ecto.Integration.SQLTest do
     assert [^datetime] = TestRepo.all(query)
   end
 
+  test "fragmented schemaless types" do
+    TestRepo.insert!(%Post{visits: 123})
+
+    assert [123] =
+             TestRepo.all(
+               from(p in "posts", select: type(fragment("visits"), :integer))
+             )
+  end
+
   @tag :array_type
   test "fragment array types" do
     datetime1 = ~N[2014-01-16 00:00:00.0]
@@ -34,15 +42,19 @@ defmodule Ecto.Integration.SQLTest do
     assert result.rows == [[1]]
   end
 
+  test "query!/4 with iodata" do
+    result = TestRepo.query!(["SELECT", ?\s, ?1])
+    assert result.rows == [[1]]
+  end
+
   test "to_sql/3" do
-    {sql, []} = Ecto.Adapters.SQL.to_sql(:all, TestRepo, Barebone)
+    {sql, []} = TestRepo.to_sql(:all, Barebone)
     assert sql =~ "SELECT"
     assert sql =~ "barebones"
 
     {sql, [0]} =
-      Ecto.Adapters.SQL.to_sql(
+      TestRepo.to_sql(
         :update_all,
-        TestRepo,
         from(b in Barebone, update: [set: [num: ^0]])
       )
 
@@ -50,7 +62,7 @@ defmodule Ecto.Integration.SQLTest do
     assert sql =~ "barebones"
     assert sql =~ "SET"
 
-    {sql, []} = Ecto.Adapters.SQL.to_sql(:delete_all, TestRepo, Barebone)
+    {sql, []} = TestRepo.to_sql(:delete_all, Barebone)
     assert sql =~ "DELETE"
     assert sql =~ "barebones"
   end
@@ -95,5 +107,21 @@ defmodule Ecto.Integration.SQLTest do
 
     TestRepo.delete_all(from(Post, where: "'" == "'"))
     assert [] == TestRepo.all(Post)
+  end
+
+  test "load" do
+    inserted_at = ~N[2016-01-01 09:00:00.000000]
+
+    TestRepo.insert!(%Post{
+      title: "title1",
+      inserted_at: inserted_at,
+      public: false
+    })
+
+    result = Ecto.Adapters.SQL.query!(TestRepo, "SELECT * FROM posts", [])
+    posts = Enum.map(result.rows, &TestRepo.load(Post, {result.columns, &1}))
+
+    assert [%Post{title: "title1", inserted_at: ^inserted_at, public: false}] =
+             posts
   end
 end

@@ -1,6 +1,5 @@
 defmodule Ecto.Integration.AlterTest do
   use Ecto.Integration.Case, async: false
-  @moduletag :integration
 
   alias Ecto.Integration.PoolRepo
 

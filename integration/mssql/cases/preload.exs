@@ -2,8 +2,6 @@ defmodule Ecto.Integration.PreloadTest do
   use Ecto.Integration.Case,
     async: Application.get_env(:ecto, :async_integration_tests, true)
 
-  @moduletag :integration
-
   alias Ecto.Integration.TestRepo
   import Ecto.Query
 
@@ -12,6 +10,19 @@ defmodule Ecto.Integration.PreloadTest do
   alias Ecto.Integration.Permalink
   alias Ecto.Integration.User
   alias Ecto.Integration.Custom
+
+  test "preload with parameter from select_merge" do
+    p1 = TestRepo.insert!(%Post{title: "p1"})
+    TestRepo.insert!(%Comment{text: "c1", post: p1})
+
+    comments =
+      from(c in Comment, select: struct(c, [:text]))
+      |> select_merge([c], %{post_id: c.post_id})
+      |> preload(:post)
+      |> TestRepo.all()
+
+    assert [%{text: "c1", post: %{title: "p1"}}] = comments
+  end
 
   test "preload has_many" do
     p1 = TestRepo.insert!(%Post{title: "1"})
@@ -174,6 +185,18 @@ defmodule Ecto.Integration.PreloadTest do
     assert c3.post.id == pid2
     assert c3.post.permalink.id == lid2
     assert c3.post_permalink.id == lid2
+  end
+
+  test "preload through with nil association" do
+    %Comment{} = c = TestRepo.insert!(%Comment{post_id: nil})
+
+    c = TestRepo.preload(c, [:post, :post_permalink])
+    assert c.post == nil
+    assert c.post_permalink == nil
+
+    c = TestRepo.preload(c, [:post, :post_permalink])
+    assert c.post == nil
+    assert c.post_permalink == nil
   end
 
   test "preload has_many through-through" do
