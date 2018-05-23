@@ -1,24 +1,137 @@
-# The directory Mix will write compiled artifacts to.
+
+# Created by https://www.gitignore.io/api/vim,linux,emacs,elixir,windows,visualstudiocode
+
+### Elixir ###
 /_build
-
-# If you run "mix test --cover", coverage assets end up here.
 /cover
-
-# The directory Mix downloads your dependencies sources to.
 /deps
-
-# Where 3rd-party dependencies like ExDoc output generated docs.
 /doc
-
-# Ignore .fetch files in case you like to edit your project deps locally.
 /.fetch
-
-# If the VM crashes, it generates a dump, let's ignore it too.
 erl_crash.dump
-
-# Also ignore archive artifacts (built via "mix archive.build").
 *.ez
+*.beam
 
-# intelij idea workspace files
-/.idea
-mssqlecto.iml
+### Elixir Patch ###
+### Emacs ###
+# -*- mode: gitignore; -*-
+*~
+\#*\#
+/.emacs.desktop
+/.emacs.desktop.lock
+*.elc
+auto-save-list
+tramp
+.\#*
+
+# Org-mode
+.org-id-locations
+*_archive
+
+# flymake-mode
+*_flymake.*
+
+# eshell files
+/eshell/history
+/eshell/lastdir
+
+# elpa packages
+/elpa/
+
+# reftex files
+*.rel
+
+# AUCTeX auto folder
+/auto/
+
+# cask packages
+.cask/
+dist/
+
+# Flycheck
+flycheck_*.el
+
+# server auth directory
+/server/
+
+# projectiles files
+.projectile
+projectile-bookmarks.eld
+
+# directory configuration
+.dir-locals.el
+
+# saveplace
+places
+
+# url cache
+url/cache/
+
+# cedet
+ede-projects.el
+
+# smex
+smex-items
+
+# company-statistics
+company-statistics-cache.el
+
+# anaconda-mode
+anaconda-mode/
+
+### Linux ###
+
+# temporary files which can be created if a process still has a handle open of a deleted file
+.fuse_hidden*
+
+# KDE directory preferences
+.directory
+
+# Linux trash folder which might appear on any partition or disk
+.Trash-*
+
+# .nfs files are created when an open file is removed but is still being accessed
+.nfs*
+
+### Vim ###
+# swap
+.sw[a-p]
+.*.sw[a-p]
+# session
+Session.vim
+# temporary
+.netrwhist
+# auto-generated tag files
+tags
+
+### VisualStudioCode ###
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+.history
+.elixir_ls
+
+### Windows ###
+# Windows thumbnail cache files
+Thumbs.db
+ehthumbs.db
+ehthumbs_vista.db
+
+# Folder config file
+Desktop.ini
+
+# Recycle Bin used on file shares
+$RECYCLE.BIN/
+
+# Windows Installer files
+*.cab
+*.msi
+*.msm
+*.msp
+
+# Windows shortcuts
+*.lnk
+
+
+# End of https://www.gitignore.io/api/vim,linux,emacs,elixir,windows,visualstudiocode
