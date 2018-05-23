@@ -35,8 +35,8 @@ Note, the lack of `:applications` key. Then, you just need to add the following 
 
 ```elixir
 def deps do
-  [{:mssql_ecto, "~> 1.1.0"},
-   {:mssqlex, "~> 1.0.0"}]
+  [{:mssql_ecto, "~> 1.2.0"},
+   {:mssqlex, "~> 1.1.0"}]
 end
 ```
 
@@ -58,8 +58,8 @@ def application do
 end
 
 def deps do
-  [{:mssql_ecto, "~> 1.1.0"},
-   {:mssqlex, "~> 1.0.0"}]
+  [{:mssql_ecto, "~> 1.2.0"},
+   {:mssqlex, "~> 1.1.0"}]
 end
 ```
 

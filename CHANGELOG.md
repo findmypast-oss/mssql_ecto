@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [1.2.0] - 2018-05-23
+
+### Changed
+
+* Upping version of `mssqlex` to 1.1.0. Brings in configuring encryption parameters.
+
 ## [1.1.0] - 2018-02-12
 
 ### Changed
