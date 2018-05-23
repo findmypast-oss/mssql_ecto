@@ -114,10 +114,8 @@ defmodule MssqlEcto.Query do
         Enum.map(rows, fn row ->
           row
           |> Enum.zip(header)
-          |> Enum.filter_map(
-            fn {_row, col} -> col in included_fields end,
-            fn {row, _col} -> row end
-          )
+          |> Enum.filter(fn {_row, col} -> col in included_fields end)
+          |> Enum.map(fn {row, _col} -> row end)
         end)
 
       fields = intersperse_map(included_fields, ?,, &quote_name/1)
