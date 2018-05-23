@@ -1,10 +1,14 @@
 FROM elixir:1.6.5-slim
 
-# --- Set Locale to en_US.UTF-8 ---
-
 ENV DEBIAN_FRONTEND noninteractive
 
-RUN apt-get update && apt-get install -y locales
+RUN apt-get update
+
+RUN apt-get install -y make
+
+# --- Set Locale to en_US.UTF-8 ---
+
+RUN apt-get install -y locales
 
 RUN echo "en_US.UTF-8 UTF-8" > /etc/locale.gen && \
     locale-gen en_US.UTF-8 && \
