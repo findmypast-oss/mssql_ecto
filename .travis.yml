@@ -11,8 +11,8 @@ install:
   - docker-compose build
 
 script:
-  - docker-compose run mssqlex mix compile --warnings-as-errors
-  - docker-compose run mssqlex mix coveralls.travis
+  - docker-compose run mssql_ecto mix compile --warnings-as-errors
+  - docker-compose run mssql_ecto mix coveralls.travis
 
 after_script:
   - mix local.hex --force
