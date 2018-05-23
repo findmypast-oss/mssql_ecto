@@ -18,6 +18,10 @@ services:
       - MSSQL_PRT=9204
       - MSSQL_DVR={ODBC Driver 17 for SQL Server}
       - TRAVIS_JOB_ID=$TRAVIS_JOB_ID
-    depends_on:
-      - sql_server
-    command: ["./wait-for-it.sh", "sql_server:9204", "-s", "--", "mix", "coveralls.travis"]
+    volumes:
+      - .:/usr/src/app/
+      - /usr/src/app/deps
+      - /usr/src/app/_build
+    entrypoint: ./wait-for-it.sh sql_server:9204 --
+    command: mix test
+

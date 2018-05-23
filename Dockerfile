@@ -1,4 +1,4 @@
-FROM elixir:1.5
+FROM elixir:1.6.5-slim
 
 # --- Set Locale to en_US.UTF-8 ---
 
@@ -14,13 +14,12 @@ ENV LC_ALL en_US.UTF-8
 
 # --- MSSQL ODBC INSTALL ---
 
-RUN apt-get update && apt-get install -y --no-install-recommends apt-transport-https
-
-RUN curl https://packages.microsoft.com/keys/microsoft.asc | apt-key add - \
-&& curl https://packages.microsoft.com/config/debian/8/prod.list | tee -a /etc/apt/sources.list.d/mssql-release.list \
-&& apt-get update \
-&& ACCEPT_EULA=Y apt-get install msodbcsql -y \
-&& apt-get install unixodbc-dev -y
+RUN apt-get update && \
+    apt-get -y install curl apt-transport-https gnupg2 && \
+    curl https://packages.microsoft.com/keys/microsoft.asc | apt-key add - && \
+    curl https://packages.microsoft.com/config/debian/9/prod.list > /etc/apt/sources.list.d/mssql-release.list && \
+    apt-get update && \
+    ACCEPT_EULA=Y apt-get install -y msodbcsql17
 
 # --- APP INSTALL ---
 
@@ -29,7 +28,7 @@ RUN mix local.hex --force && \
 
 COPY . /usr/src/app
 WORKDIR /usr/src/app
-RUN mix do deps.get
+RUN mix do deps.get, deps.compile
 
 # --- Be able to run wait for it script ---
 

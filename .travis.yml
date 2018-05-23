@@ -2,7 +2,7 @@ sudo: required
 
 language: elixir
 elixir:
-  - 1.5
+  - 1.6.5
 
 services:
   - docker
@@ -11,7 +11,8 @@ install:
   - docker-compose build
 
 script:
-  - docker-compose run mssql_ecto
+  - docker-compose run mssqlex mix compile --warnings-as-errors
+  - docker-compose run mssqlex mix coveralls.travis
 
 after_script:
   - mix local.hex --force
