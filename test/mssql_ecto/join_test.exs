@@ -53,7 +53,9 @@ defmodule MssqlEcto.JoinTest do
 
   test "join" do
     query =
-      Schema |> join(:inner, [p], q in Schema2, p.x == q.z) |> select([], true)
+      Schema
+      |> join(:inner, [p], q in Schema2, p.x == q.z)
+      |> select([], true)
       |> normalize
 
     assert SQL.all(query) ==
@@ -73,7 +75,9 @@ defmodule MssqlEcto.JoinTest do
 
   test "join with nothing bound" do
     query =
-      Schema |> join(:inner, [], q in Schema2, q.z == q.z) |> select([], true)
+      Schema
+      |> join(:inner, [], q in Schema2, q.z == q.z)
+      |> select([], true)
       |> normalize
 
     assert SQL.all(query) ==
@@ -94,7 +98,9 @@ defmodule MssqlEcto.JoinTest do
   test "join with subquery" do
     posts =
       subquery(
-        "posts" |> where(title: ^"hello") |> select([r], %{x: r.x, y: r.y})
+        "posts"
+        |> where(title: ^"hello")
+        |> select([r], %{x: r.x, y: r.y})
       )
 
     query =
@@ -109,7 +115,9 @@ defmodule MssqlEcto.JoinTest do
 
     posts =
       subquery(
-        "posts" |> where(title: ^"hello") |> select([r], %{x: r.x, z: r.y})
+        "posts"
+        |> where(title: ^"hello")
+        |> select([r], %{x: r.x, z: r.y})
       )
 
     query =
@@ -125,7 +133,9 @@ defmodule MssqlEcto.JoinTest do
 
   test "join with prefix" do
     query =
-      Schema |> join(:inner, [p], q in Schema2, p.x == q.z) |> select([], true)
+      Schema
+      |> join(:inner, [p], q in Schema2, p.x == q.z)
+      |> select([], true)
       |> normalize
 
     assert SQL.all(%{query | prefix: "prefix"}) ==
@@ -190,7 +200,9 @@ defmodule MssqlEcto.JoinTest do
 
   test "association join belongs_to" do
     query =
-      Schema2 |> join(:inner, [c], p in assoc(c, :post)) |> select([], true)
+      Schema2
+      |> join(:inner, [c], p in assoc(c, :post))
+      |> select([], true)
       |> normalize
 
     assert SQL.all(query) ==
@@ -199,7 +211,9 @@ defmodule MssqlEcto.JoinTest do
 
   test "association join has_many" do
     query =
-      Schema |> join(:inner, [p], c in assoc(p, :comments)) |> select([], true)
+      Schema
+      |> join(:inner, [p], c in assoc(p, :comments))
+      |> select([], true)
       |> normalize
 
     assert SQL.all(query) ==

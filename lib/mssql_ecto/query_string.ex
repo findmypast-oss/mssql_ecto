@@ -427,7 +427,8 @@ defmodule MssqlEcto.QueryString do
     ]
   end
 
-  def expr({fun, _, args}, sources, query) when is_atom(fun) and is_list(args) do
+  def expr({fun, _, args}, sources, query)
+      when is_atom(fun) and is_list(args) do
     {modifier, args} =
       case args do
         [rest, :distinct] -> {"DISTINCT ", [rest]}

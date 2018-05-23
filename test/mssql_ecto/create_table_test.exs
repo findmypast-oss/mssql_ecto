@@ -48,7 +48,8 @@ defmodule MssqlEcto.CreateTableTest do
        [
          {:add, :id, :serial, [primary_key: true]},
          {:add, :category_0, %Reference{table: :categories}, []},
-         {:add, :category_1, %Reference{table: :categories, name: :foo_bar}, []},
+         {:add, :category_1, %Reference{table: :categories, name: :foo_bar},
+          []},
          {:add, :category_2,
           %Reference{table: :categories, on_delete: :nothing}, []},
          {:add, :category_3,

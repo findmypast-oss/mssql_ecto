@@ -72,14 +72,16 @@ defmodule MssqlEcto.SelectTest do
 
   test "from with subquery" do
     query =
-      subquery("posts" |> select([r], %{x: r.x, y: r.y})) |> select([r], r.x)
+      subquery("posts" |> select([r], %{x: r.x, y: r.y}))
+      |> select([r], r.x)
       |> normalize
 
     assert SQL.all(query) ==
              ~s{SELECT s0."x" FROM (SELECT p0."x" AS "x", p0."y" AS "y" FROM "posts" AS p0) AS s0}
 
     query =
-      subquery("posts" |> select([r], %{x: r.x, z: r.y})) |> select([r], r)
+      subquery("posts" |> select([r], %{x: r.x, z: r.y}))
+      |> select([r], r)
       |> normalize
 
     assert SQL.all(query) ==
@@ -125,7 +127,9 @@ defmodule MssqlEcto.SelectTest do
              ~s{SELECT DISTINCT ON (2) s0."x" FROM "schema" AS s0}
 
     query =
-      Schema |> distinct([r], [r.x, r.y]) |> select([r], {r.x, r.y})
+      Schema
+      |> distinct([r], [r.x, r.y])
+      |> select([r], {r.x, r.y})
       |> normalize
 
     assert SQL.all(query) ==
@@ -210,7 +214,9 @@ defmodule MssqlEcto.SelectTest do
              ~s{SELECT s0."x" FROM "schema" AS s0 ORDER BY s0."x", s0."y"}
 
     query =
-      Schema |> order_by([r], asc: r.x, desc: r.y) |> select([r], r.x)
+      Schema
+      |> order_by([r], asc: r.x, desc: r.y)
+      |> select([r], r.x)
       |> normalize
 
     assert SQL.all(query) ==
@@ -292,7 +298,8 @@ defmodule MssqlEcto.SelectTest do
     value = 13
 
     query =
-      Schema |> select([r], fragment("downcase(?, ?)", r.x, ^value))
+      Schema
+      |> select([r], fragment("downcase(?, ?)", r.x, ^value))
       |> normalize
 
     assert SQL.all(query) == ~s{SELECT downcase(s0."x", ?1) FROM "schema" AS s0}
@@ -353,7 +360,8 @@ defmodule MssqlEcto.SelectTest do
     z = 123
 
     query =
-      from(r in Schema, []) |> select([r], (r.x > 0 and r.y > ^(-z)) or true)
+      from(r in Schema, [])
+      |> select([r], (r.x > 0 and r.y > ^(-z)) or true)
       |> normalize
 
     assert SQL.all(query) ==

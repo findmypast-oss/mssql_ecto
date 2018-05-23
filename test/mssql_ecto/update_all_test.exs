@@ -102,7 +102,8 @@ defmodule MssqlEcto.UpdateAllTest do
 
   test "update all with returning" do
     query =
-      from(m in Schema, update: [set: [x: 0]]) |> select([m], m)
+      from(m in Schema, update: [set: [x: 0]])
+      |> select([m], m)
       |> normalize(:update_all)
 
     assert SQL.update_all(query) ==
