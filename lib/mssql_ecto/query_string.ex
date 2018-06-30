@@ -41,7 +41,7 @@ defmodule MssqlEcto.QueryString do
   end
 
   def top(%Query{offset: nil, limit: %QueryExpr{expr: expr}} = query, sources) do
-    [" TOP ", expr(expr, sources, query)]
+    [" TOP(", expr(expr, sources, query), ")"]
   end
 
   def top(_, _) do
