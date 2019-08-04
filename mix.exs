@@ -4,7 +4,7 @@ defmodule MssqlEcto.Mixfile do
   def project() do
     [
       app: :mssql_ecto,
-      version: "1.2.0",
+      version: "2.0.0-beta.0",
       description: "Ecto Adapter for Microsoft SQL Server. Using Mssqlex.",
       elixir: "~> 1.8",
       build_embedded: Mix.env() == :prod,
@@ -31,10 +31,7 @@ defmodule MssqlEcto.Mixfile do
 
   defp deps() do
     [
-      #{:mssqlex, "~> 1.1.0"},
-      #{:mssqlex, git: "https://github.com/whossname/mssqlex.git", branch: "db_connection_2.0"},
-      {:mssqlex, path: "../mssqlex"},
-
+      {:mssqlex, git: "https://github.com/whossname/mssqlex.git", branch: "db_connection_2.0"},
       {:ecto_sql, "~> 3.1"},
       {:db_connection, path: "../db_connection", override: true},
 

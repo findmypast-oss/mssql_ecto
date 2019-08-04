@@ -7,4 +7,3 @@
   see https://www.sqlpassion.at/archive/2015/05/25/the-ambiguity-of-the-order-by-in-sql-server/
 - no match for Decimal (alter integration test)
 - Datetime and Date encoding support are wrong, decoding doesn't exist.
-- 
