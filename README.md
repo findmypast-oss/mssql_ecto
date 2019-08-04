@@ -131,9 +131,9 @@ An example project using mssql_ecto with Docker has kindly been created by
 
 ## Contributing
 
-### Integration Test Setup
+### Test Setup
 
-Running the integration tests requires an instance of SQL Server running on
+Running the tests requires an instance of SQL Server running on
 `localhost` and certain configuration variables set as environment variables:
 
 - MSSQL_DVR should be set to the ODBC driver to be used. Usually
@@ -144,6 +144,9 @@ Running the integration tests requires an instance of SQL Server running on
 - MSSQL_PWD should be set to the password for the above account
 
 The tests will create a database named `mssql_ecto_integration_test`
+
+The script `/bash_scripts/setup_test_db.sh` starts a docker image that holds
+the test database.
 
 ### Code of Conduct
 
