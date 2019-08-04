@@ -22,6 +22,6 @@ services:
       - .:/usr/src/app/
       - /usr/src/app/deps
       - /usr/src/app/_build
-    entrypoint: ./wait-for-it.sh sql_server:9204 --
+    entrypoint: ./bash_scripts/wait-for-it.sh sql_server:9204 --
     command: mix test
 
