@@ -5,7 +5,7 @@
 [![Inline docs](http://inch-ci.org/github/findmypast-oss/mssql_ecto.svg?branch=master)](http://inch-ci.org/github/findmypast-oss/mssql_ecto)
 [![Ebert](https://ebertapp.io/github/findmypast-oss/mssql_ecto.svg)](https://ebertapp.io/github/findmypast-oss/mssql_ecto)
 [![Hex.pm](https://img.shields.io/hexpm/v/mssql_ecto.svg)](https://hex.pm/packages/mssql_ecto)
-[![LICENSE](https://img.shields.io/hexpm/l/mssql_ecto.svg)](https://github.com/findmypast-oss/mssql_ecto/blob/master/LICENSE)
+[![LICENSE](https://img.shields.io/hexpm/l/mssql_ecto.svg)](https://github.com/findmypast-oss/mssql_ecto/blob/master/docs/LICENSE)
 
 [Ecto](https://github.com/elixir-ecto/ecto) Adapter for
 [Mssqlex](https://github.com/findmypast-oss/mssqlex)
@@ -151,5 +151,5 @@ the test database.
 ### Code of Conduct
 
 This project had a
-[Code of Conduct](https://github.com/findmypast-oss/mssql_ecto/blob/master/CODE_OF_CONDUCT.md)
+[Code of Conduct](https://github.com/findmypast-oss/mssql_ecto/blob/master/docs/CODE_OF_CONDUCT.md)
 if you wish to contribute to this project, please abide by its rules.
