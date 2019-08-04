@@ -64,8 +64,7 @@ defmodule MssqlEcto.AlterTableTest do
   end
 
   test "alter table with primary key" do
-    alter =
-      {:alter, table(:posts), [{:add, :my_pk, :serial, [primary_key: true]}]}
+    alter = {:alter, table(:posts), [{:add, :my_pk, :serial, [primary_key: true]}]}
 
     assert execute_ddl(alter) == [
              """

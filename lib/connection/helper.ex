@@ -1,9 +1,17 @@
-defmodule MssqlEcto.Helpers do
-  alias MssqlEcto.QueryString
+defmodule MssqlEcto.Connection.Helper do
+  alias MssqlEcto.Connection.Query.Expression
 
   def get_source(query, sources, ix, source) do
     {expr, name, _schema} = elem(sources, ix)
-    {expr || QueryString.paren_expr(source, sources, query), name}
+    {expr || Expression.expr(source, sources, query), name}
+  end
+
+  def add_prefix(nil, name) do
+    name
+  end
+
+  def add_prefix( prefix, name) do
+    [quote_name(prefix), ".", name]
   end
 
   def quote_qualified_name(name, sources, ix) do
@@ -43,23 +51,32 @@ defmodule MssqlEcto.Helpers do
     [wrapper, value, wrapper]
   end
 
-  def quote_table(prefix, name)
-  def quote_table(nil, name), do: quote_name(name)
+  def quote_table(nil, name), do: quote_table(name)
+  def quote_table(prefix, name), do: [quote_table(prefix), ?., quote_table(name)]
 
-  def quote_table(prefix, name),
-    do: intersperse_map([prefix, name], ?., &quote_name/1)
+  def quote_table(name) when is_atom(name),
+    do: quote_table(Atom.to_string(name))
 
-  def single_quote(value), do: value |> escape_string |> wrap_in(?')
+  def quote_table(name) do
+    if String.contains?(name, "\"") do
+      error!(nil, "bad table name #{inspect(name)}")
+    end
+
+    [?", name, ?"]
+  end
+
+  def single_quote(value), do: [?', escape_string(value), ?']
 
   def intersperse_map(list, separator, mapper, acc \\ [])
-  def intersperse_map([], _separator, _mapper, acc), do: acc
+
+  def intersperse_map([], _separator, _mapper, acc),
+    do: acc
 
   def intersperse_map([elem], _separator, mapper, acc),
     do: [acc | mapper.(elem)]
 
   def intersperse_map([elem | rest], separator, mapper, acc),
-    do:
-      intersperse_map(rest, separator, mapper, [acc, mapper.(elem), separator])
+    do: intersperse_map(rest, separator, mapper, [acc, mapper.(elem), separator])
 
   def intersperse_reduce(list, separator, user_acc, reducer, acc \\ [])
 
@@ -73,12 +90,7 @@ defmodule MssqlEcto.Helpers do
 
   def intersperse_reduce([elem | rest], separator, user_acc, reducer, acc) do
     {elem, user_acc} = reducer.(elem, user_acc)
-
-    intersperse_reduce(rest, separator, user_acc, reducer, [
-      acc,
-      elem,
-      separator
-    ])
+    intersperse_reduce(rest, separator, user_acc, reducer, [acc, elem, separator])
   end
 
   def if_do(condition, value) do
@@ -102,9 +114,12 @@ defmodule MssqlEcto.Helpers do
   def ecto_to_db(:map), do: "nvarchar(4000)"
   def ecto_to_db({:map, _}), do: "nvarchar(4000)"
   def ecto_to_db(:utc_datetime), do: "datetime2"
+  def ecto_to_db(:utc_datetime_usec), do: "datetime2"
   def ecto_to_db(:naive_datetime), do: "datetime2"
+  def ecto_to_db(:naive_datetime_usec), do: "datetime2"
   def ecto_to_db(:timestamp), do: "datetime2"
   def ecto_to_db(other), do: Atom.to_string(other)
+
 
   def error!(nil, message) do
     raise ArgumentError, message

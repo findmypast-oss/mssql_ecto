@@ -1,16 +1,46 @@
-defmodule MssqlEcto.Migration do
+defmodule MssqlEcto.Connection.DDL do
   alias Ecto.Migration.{Table, Index, Reference, Constraint}
+  import MssqlEcto.Connection.Helper
 
-  import MssqlEcto.Helpers
-
+  @creates [:create, :create_if_not_exists]
   @drops [:drop, :drop_if_exists]
 
-  @doc """
-  Receives a DDL command and returns a query that executes it.
-  """
-  @spec execute_ddl(command :: Ecto.Adapter.Migration.command()) :: String.t()
-  def execute_ddl({command, %Table{} = table, columns})
-      when command in [:create, :create_if_not_exists] do
+  def logs(%Mssqlex.Result{} = result) do
+    messages =
+      case result do
+        %{messages: messages} ->
+          messages
+
+        _ ->
+          []
+      end
+
+    for message <- messages do
+      %{message: message, severity: severity} = message
+
+      {ddl_log_level(severity), message, []}
+    end
+  end
+
+  # TODO these are for Postgres, maybe irrelevant for MSSQL
+  defp ddl_log_level("DEBUG"), do: :debug
+  defp ddl_log_level("LOG"), do: :info
+  defp ddl_log_level("INFO"), do: :info
+  defp ddl_log_level("NOTICE"), do: :info
+  defp ddl_log_level("WARNING"), do: :warn
+  defp ddl_log_level("ERROR"), do: :error
+  defp ddl_log_level("FATAL"), do: :error
+  defp ddl_log_level("PANIC"), do: :error
+  defp ddl_log_level(_severity), do: :info
+
+  def table_exists_query(table) do
+    {"SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = ?",
+     [table]}
+  end
+
+  # execute dll (all MSSQL from here on)
+  def execute({command, %Table{} = table, columns})
+      when command in @creates do
     query = [
       if_do(
         command == :create_if_not_exists,
@@ -29,7 +59,7 @@ defmodule MssqlEcto.Migration do
     [query]
   end
 
-  def execute_ddl({command, %Table{} = table}) when command in @drops do
+  def execute({command, %Table{} = table}) when command in @drops do
     [
       [
         if_do(
@@ -42,7 +72,7 @@ defmodule MssqlEcto.Migration do
     ]
   end
 
-  def execute_ddl({:alter, %Table{} = table, changes}) do
+  def execute({:alter, %Table{} = table, changes}) do
     query = [
       column_changes(table, changes),
       quote_alter(pk_definition(changes, " ADD ", table), table)
@@ -51,7 +81,7 @@ defmodule MssqlEcto.Migration do
     [query]
   end
 
-  def execute_ddl({:create, %Index{} = index}) do
+  def execute({:create, %Index{} = index}) do
     fields = intersperse_map(index.columns, ", ", &index_expr/1)
 
     queries = [
@@ -73,11 +103,11 @@ defmodule MssqlEcto.Migration do
     queries
   end
 
-  def execute_ddl({:create_if_not_exists, %Index{} = _index}) do
+  def execute({:create_if_not_exists, %Index{} = _index}) do
     raise("create index if not exists: not supported")
   end
 
-  def execute_ddl({command, %Index{} = index}) when command in @drops do
+  def execute({command, %Index{} = index}) when command in @drops do
     if_exists = if command == :drop_if_exists, do: "IF EXISTS ", else: []
 
     [
@@ -91,7 +121,7 @@ defmodule MssqlEcto.Migration do
     ]
   end
 
-  def execute_ddl({:rename, %Table{} = current_table, %Table{} = new_table}) do
+  def execute({:rename, %Table{} = current_table, %Table{} = new_table}) do
     [
       [
         "EXEC sp_rename ",
@@ -103,7 +133,7 @@ defmodule MssqlEcto.Migration do
     ]
   end
 
-  def execute_ddl({:rename, %Table{} = table, current_column, new_column}) do
+  def execute({:rename, %Table{} = table, current_column, new_column}) do
     [
       [
         "EXEC sp_rename ",
@@ -115,7 +145,7 @@ defmodule MssqlEcto.Migration do
     ]
   end
 
-  def execute_ddl({:create, %Constraint{} = constraint}) do
+  def execute({:create, %Constraint{} = constraint}) do
     queries = [
       [
         "ALTER TABLE ",
@@ -128,7 +158,7 @@ defmodule MssqlEcto.Migration do
     queries
   end
 
-  def execute_ddl({:drop, %Constraint{} = constraint}) do
+  def execute({:drop, %Constraint{} = constraint}) do
     [
       [
         "ALTER TABLE ",
@@ -139,9 +169,9 @@ defmodule MssqlEcto.Migration do
     ]
   end
 
-  def execute_ddl(string) when is_binary(string), do: [string]
+  def execute(string) when is_binary(string), do: [string]
 
-  def execute_ddl(keyword) when is_list(keyword),
+  def execute(keyword) when is_list(keyword),
     do: error!(nil, "MSSQL adapter does not support keyword lists in execute")
 
   @doc false
@@ -199,8 +229,7 @@ defmodule MssqlEcto.Migration do
   end
 
   defp column_changes(table, columns) do
-    {additions, changes} =
-      Enum.split_with(columns, fn val -> elem(val, 0) == :add end)
+    {additions, changes} = Enum.split_with(columns, fn val -> elem(val, 0) == :add end)
 
     [
       if_do(additions !== [], column_additions(additions, table)),

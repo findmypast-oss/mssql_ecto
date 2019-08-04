@@ -13,8 +13,7 @@ defmodule MssqlEcto.Case do
   end
 
   def normalize(query, operation \\ :all, counter \\ 0) do
-    {query, _params, _key} =
-      Ecto.Query.Planner.prepare(query, operation, MssqlEcto, counter)
+    {query, _params, _key} = Ecto.Query.Planner.plan(query, operation, MssqlEcto, counter)
 
     case Ecto.Query.Planner.normalize(query, operation, MssqlEcto, counter) do
       # Ecto v2.2 onwards

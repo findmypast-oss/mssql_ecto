@@ -1,12 +1,12 @@
 defmodule MssqlEcto.Mixfile do
   use Mix.Project
 
-  def project do
+  def project() do
     [
       app: :mssql_ecto,
       version: "1.2.0",
       description: "Ecto Adapter for Microsoft SQL Server. Using Mssqlex.",
-      elixir: "~> 1.6",
+      elixir: "~> 1.8",
       build_embedded: Mix.env() == :prod,
       start_permanent: Mix.env() == :prod,
       deps: deps(),
@@ -25,21 +25,28 @@ defmodule MssqlEcto.Mixfile do
     ]
   end
 
-  def application do
+  def application() do
     [extra_applications: [:logger]]
   end
 
-  defp deps do
+  defp deps() do
     [
-      {:mssqlex, "~> 1.1.0"},
-      {:ecto, "~> 2.2.0"},
+      #{:mssqlex, "~> 1.1.0"},
+      #{:mssqlex, git: "https://github.com/whossname/mssqlex.git", branch: "db_connection_2.0"},
+      {:mssqlex, path: "../mssqlex"},
+
+      {:ecto_sql, "~> 3.1"},
+      {:db_connection, path: "../db_connection", override: true},
+
+      # tooling
       {:ex_doc, "~> 0.15", only: :dev, runtime: false},
+      {:dialyxir, "~> 0.4", only: [:dev]},
       {:excoveralls, "~> 0.6", only: :test},
-      {:inch_ex, "~> 0.5", only: :docs}
+      {:inch_ex, "~> 0.5", only: :docs},
     ]
   end
 
-  defp package do
+  defp package() do
     [
       name: :mssql_ecto,
       files: ["lib", "mix.exs", "README.md", "LICENSE"],

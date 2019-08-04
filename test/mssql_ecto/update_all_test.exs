@@ -52,37 +52,51 @@ defmodule MssqlEcto.UpdateAllTest do
   end
 
   test "update all" do
-    query = from(m in Schema, update: [set: [x: 0]]) |> normalize(:update_all)
+    query =
+      from(m in Schema, update: [set: [x: 0]])
+      |> normalize(:update_all)
+      |> SQL.update_all()
+      |> IO.iodata_to_binary()
 
-    assert SQL.update_all(query) ==
+    assert query ==
              ~s{UPDATE s0 SET "x" = 0 FROM "schema" AS s0}
 
     query =
       from(m in Schema, update: [set: [x: 0], inc: [y: 1, z: -3]])
       |> normalize(:update_all)
+      |> SQL.update_all()
+      |> IO.iodata_to_binary()
 
-    assert SQL.update_all(query) ==
+    assert query ==
              ~s{UPDATE s0 SET "x" = 0, "y" = s0."y" + 1, "z" = s0."z" + -3 FROM "schema" AS s0}
 
     query =
       from(e in Schema, where: e.x == 123, update: [set: [x: 0]])
       |> normalize(:update_all)
+      |> SQL.update_all()
+      |> IO.iodata_to_binary()
 
-    assert SQL.update_all(query) ==
+    assert query ==
              ~s{UPDATE s0 SET "x" = 0 FROM "schema" AS s0 WHERE (s0."x" = 123)}
 
-    query = from(m in Schema, update: [set: [x: ^0]]) |> normalize(:update_all)
+    query =
+      from(m in Schema, update: [set: [x: ^0]])
+      |> normalize(:update_all)
+      |> SQL.update_all()
+      |> IO.iodata_to_binary()
 
-    assert SQL.update_all(query) ==
-             ~s{UPDATE s0 SET "x" = ?1 FROM "schema" AS s0}
+    assert query ==
+             ~s{UPDATE s0 SET "x" = ? FROM "schema" AS s0}
 
     query =
       Schema
-      |> join(:inner, [p], q in Schema2, p.x == q.z)
+      |> join(:inner, [p], q in Schema2, on: p.x == q.z)
       |> update([_], set: [x: 0])
       |> normalize(:update_all)
+      |> SQL.update_all()
+      |> IO.iodata_to_binary()
 
-    assert SQL.update_all(query) ==
+    assert query ==
              ~s{UPDATE s0 SET "x" = 0 FROM "schema" AS s0 INNER JOIN "schema2" AS s1 ON (s0."x" = s1."z")}
 
     query =
@@ -94,8 +108,10 @@ defmodule MssqlEcto.UpdateAllTest do
         on: e.x == q.z
       )
       |> normalize(:update_all)
+      |> SQL.update_all()
+      |> IO.iodata_to_binary()
 
-    assert SQL.update_all(query) ==
+    assert query ==
              ~s{UPDATE s0 SET "x" = 0 FROM "schema" AS s0 INNER JOIN "schema2" AS s1 } <>
                ~s{ON (s0."x" = s1."z") WHERE (s0."x" = 123)}
   end
@@ -105,28 +121,44 @@ defmodule MssqlEcto.UpdateAllTest do
       from(m in Schema, update: [set: [x: 0]])
       |> select([m], m)
       |> normalize(:update_all)
+      |> SQL.update_all()
+      |> IO.iodata_to_binary()
 
-    assert SQL.update_all(query) ==
+    assert query ==
              ~s{UPDATE s0 SET "x" = 0 OUTPUT INSERTED."id", INSERTED."x", INSERTED."y", INSERTED."z", INSERTED."w" FROM "schema" AS s0}
   end
 
-  @tag skip: "Arrays not supported"
+  # TODO why was this skipped?
+  #@tag skip: "Arrays not supported"
   test "update all array ops" do
-    query = from(m in Schema, update: [push: [w: 0]]) |> normalize(:update_all)
+    query =
+      from(m in Schema, update: [push: [w: 0]])
+      |> normalize(:update_all)
+      |> SQL.update_all()
+      |> IO.iodata_to_binary()
 
-    assert SQL.update_all(query) ==
+    assert query ==
              ~s{UPDATE s0 SET "w" = array_append(s0."w", 0) FROM "schema" AS s0}
 
-    query = from(m in Schema, update: [pull: [w: 0]]) |> normalize(:update_all)
+    query =
+      from(m in Schema, update: [pull: [w: 0]])
+      |> normalize(:update_all)
+      |> SQL.update_all()
+      |> IO.iodata_to_binary()
 
-    assert SQL.update_all(query) ==
+    assert query ==
              ~s{UPDATE s0 SET "w" = array_remove(s0."w", 0) FROM "schema" AS s0}
   end
 
   test "update all with prefix" do
-    query = from(m in Schema, update: [set: [x: 0]]) |> normalize(:update_all)
+    query =
+      from(m in Schema, update: [set: [x: 0]])
+      |> normalize(:update_all)
+      |> Map.put(:prefix, "prefix")
+      |> SQL.update_all()
+      |> IO.iodata_to_binary()
 
-    assert SQL.update_all(%{query | prefix: "prefix"}) ==
+    assert query ==
              ~s{UPDATE s0 SET "x" = 0 FROM "prefix"."schema" AS s0}
   end
 end
