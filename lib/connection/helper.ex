@@ -1,5 +1,6 @@
 defmodule MssqlEcto.Connection.Helper do
   alias MssqlEcto.Connection.Query.Expression
+  require Logger
 
   def get_source(query, sources, ix, source) do
     {expr, name, _schema} = elem(sources, ix)
@@ -10,7 +11,7 @@ defmodule MssqlEcto.Connection.Helper do
     name
   end
 
-  def add_prefix( prefix, name) do
+  def add_prefix(prefix, name) do
     [quote_name(prefix), ".", name]
   end
 
@@ -102,9 +103,9 @@ defmodule MssqlEcto.Connection.Helper do
   end
 
   def ecto_to_db({:array, t}), do: [ecto_to_db(t), ?[, ?]]
-  def ecto_to_db(:id), do: "int"
-  def ecto_to_db(:serial), do: "int identity(1,1)"
-  def ecto_to_db(:bigserial), do: "bigint identity(1,1)"
+  def ecto_to_db(:id), do: "int identity"
+  def ecto_to_db(:serial), do: "int identity"
+  def ecto_to_db(:bigserial), do: "bigint identity"
   def ecto_to_db(:binary_id), do: "char(36)"
   def ecto_to_db(:uuid), do: "char(36)"
   def ecto_to_db(:string), do: "nvarchar"
@@ -118,8 +119,18 @@ defmodule MssqlEcto.Connection.Helper do
   def ecto_to_db(:naive_datetime), do: "datetime2"
   def ecto_to_db(:naive_datetime_usec), do: "datetime2"
   def ecto_to_db(:timestamp), do: "datetime2"
-  def ecto_to_db(other), do: Atom.to_string(other)
 
+  def ecto_to_db(:bigint), do: "bigint"
+  def ecto_to_db(:decimal), do: "decimal"
+  def ecto_to_db(:float), do: "float"
+  def ecto_to_db(:date), do: "date"
+  def ecto_to_db(:text), do: "text"
+  def ecto_to_db(:numeric), do: "numeric"
+
+  def ecto_to_db(other) do
+    Logger.warn("type not explicitly handeled: #{other}")
+    Atom.to_string(other)
+  end
 
   def error!(nil, message) do
     raise ArgumentError, message

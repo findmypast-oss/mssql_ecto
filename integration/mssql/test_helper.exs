@@ -5,7 +5,7 @@ System.put_env("MSSQL_UID", "sa")
 System.put_env("MSSQL_PWD", "ThePa$$word")
 Application.put_env(:ecto, :primary_key_type, :id)
 Application.put_env(:ecto, :async_integration_tests, false)
-Application.put_env(:ecto_sql, :lock_for_update, "FOR UPDATE")
+Application.put_env(:ecto_sql, :lock_for_update, " with (updlock) ")
 
 # support paths
 ecto = Mix.Project.deps_paths()[:ecto]
