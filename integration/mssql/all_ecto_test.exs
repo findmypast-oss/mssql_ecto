@@ -1,7 +1,6 @@
 ecto = Mix.Project.deps_paths()[:ecto]
 ecto = "#{ecto}/integration_test/cases"
 
-
 """
 
 # Partial Support
@@ -14,8 +13,7 @@ Most tests pass.
 * many-to-many doesn't retrun duplicates
 
 > Code.require_file("joins.exs", ecto)
-1/3 tests pass.
-* need to handle types for joins.
+2 tests fail.
 
 > Code.require_file("preload.exs", ecto)
 most tests pass. Needs investigation

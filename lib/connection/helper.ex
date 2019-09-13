@@ -128,7 +128,7 @@ defmodule MssqlEcto.Connection.Helper do
   def ecto_to_db(:numeric), do: "numeric"
 
   def ecto_to_db(other) do
-    Logger.warn("type not explicitly handeled: #{other}")
+    Logger.warn("type not explicitly handled: #{other}")
     Atom.to_string(other)
   end
 
