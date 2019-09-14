@@ -19,7 +19,7 @@ ENV LC_ALL en_US.UTF-8
 # --- MSSQL ODBC INSTALL ---
 
 RUN apt-get update && \
-    apt-get -y install curl apt-transport-https gnupg2 && \
+    apt-get -y install git curl apt-transport-https gnupg2 && \
     curl https://packages.microsoft.com/keys/microsoft.asc | apt-key add - && \
     curl https://packages.microsoft.com/config/debian/9/prod.list > /etc/apt/sources.list.d/mssql-release.list && \
     apt-get update && \

@@ -27,6 +27,7 @@ Application.put_env(
   adapter: MssqlEcto,
   username: System.get_env("MSSQL_UID"),
   password: System.get_env("MSSQL_PWD"),
+  hostname: System.get_env("MSSQL_HST") || "localhost",
   database: "mssql_ecto_integration_test",
   pool: Ecto.Adapters.SQL.Sandbox
 )

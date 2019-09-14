@@ -4,24 +4,24 @@ services:
     image: microsoft/mssql-server-linux
     environment:
       - ACCEPT_EULA=Y
-      - SA_PASSWORD=TestPa$$word123
-      - MSSQL_TCP_PORT=9204
+      - SA_PASSWORD=ThePa$$word
+      - MSSQL_TCP_PORT=1433
 
   mssql_ecto:
     build: .
     environment:
       - MIX_ENV=test
       - MSSQL_UID=sa
-      - MSSQL_PWD=TestPa$$word123
+      - MSSQL_PWD=ThePa$$word
       - MSSQL_HST=sql_server
       - MSSQL_IN=MSSQLSERVER
-      - MSSQL_PRT=9204
+      - MSSQL_PRT=1433
       - MSSQL_DVR={ODBC Driver 17 for SQL Server}
       - TRAVIS_JOB_ID=$TRAVIS_JOB_ID
     volumes:
       - .:/usr/src/app/
       - /usr/src/app/deps
       - /usr/src/app/_build
-    entrypoint: ./bash_scripts/wait-for-it.sh sql_server:9204 --
+    entrypoint: ./bash_scripts/wait-for-it.sh sql_server:1433 --
     command: mix test
 
