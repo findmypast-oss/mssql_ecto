@@ -24,4 +24,3 @@ services:
       - /usr/src/app/_build
     entrypoint: ./bash_scripts/wait-for-it.sh sql_server:1433 --
     command: mix test
-

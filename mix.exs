@@ -32,14 +32,14 @@ defmodule MssqlEcto.Mixfile do
   defp deps() do
     [
       {:mssqlex, git: "https://github.com/whossname/mssqlex.git", branch: "db_connection_2.0"},
-      {:ecto_sql, "~> 3.1"},
-      {:db_connection,  "~> 2.1"},
+      {:ecto_sql, "~> 3.2"},
+      {:db_connection, "~> 2.1"},
 
       # tooling
       {:ex_doc, "~> 0.15", only: :dev, runtime: false},
       {:dialyxir, "~> 1.0.0-rc.6", only: [:dev], runtime: false},
       {:excoveralls, "~> 0.6", only: :test},
-      {:inch_ex, "~> 0.5", only: :docs},
+      {:inch_ex, "~> 0.5", only: :docs}
     ]
   end
 
