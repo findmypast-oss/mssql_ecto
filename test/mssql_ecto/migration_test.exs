@@ -16,8 +16,7 @@ defmodule MssqlEcto.MigrationTest do
   end
 
   test "rename table with prefix" do
-    rename =
-      {:rename, table(:posts, prefix: :foo), table(:new_posts, prefix: :foo)}
+    rename = {:rename, table(:posts, prefix: :foo), table(:new_posts, prefix: :foo)}
 
     assert execute_ddl(rename) == [
              ~s|EXEC sp_rename 'foo.posts', 'new_posts', 'OBJECT'|

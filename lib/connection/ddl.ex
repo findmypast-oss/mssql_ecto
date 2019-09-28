@@ -34,8 +34,7 @@ defmodule MssqlEcto.Connection.DDL do
   defp ddl_log_level(_severity), do: :info
 
   def table_exists_query(table) do
-    {"SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = ?",
-     [table]}
+    {"SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = ?", [table]}
   end
 
   # execute dll (all MSSQL from here on)

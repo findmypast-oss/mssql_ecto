@@ -4,9 +4,7 @@ defmodule MssqlEcto.ConstraintTest do
   import Ecto.Migration, only: [constraint: 2, constraint: 3]
 
   test "create check constraint" do
-    create =
-      {:create,
-       constraint(:products, "price_must_be_positive", check: "price > 0")}
+    create = {:create, constraint(:products, "price_must_be_positive", check: "price > 0")}
 
     assert execute_ddl(create) ==
              [
@@ -54,8 +52,7 @@ defmodule MssqlEcto.ConstraintTest do
                ~s|ALTER TABLE "products" DROP CONSTRAINT "price_must_be_positive"|
              ]
 
-    drop =
-      {:drop, constraint(:products, "price_must_be_positive", prefix: "foo")}
+    drop = {:drop, constraint(:products, "price_must_be_positive", prefix: "foo")}
 
     assert execute_ddl(drop) ==
              [

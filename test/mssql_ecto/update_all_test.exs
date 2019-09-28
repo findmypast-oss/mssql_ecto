@@ -129,7 +129,7 @@ defmodule MssqlEcto.UpdateAllTest do
   end
 
   # TODO why was this skipped?
-  #@tag skip: "Arrays not supported"
+  # @tag skip: "Arrays not supported"
   test "update all array ops" do
     query =
       from(m in Schema, update: [push: [w: 0]])

@@ -305,7 +305,7 @@ defmodule MssqlEcto.SelectTest do
   end
 
   # TODO why was this skipped?
-  #@tag skip: "Not yet supported"
+  # @tag skip: "Not yet supported"
   test "lock" do
     query =
       Schema
@@ -390,7 +390,7 @@ defmodule MssqlEcto.SelectTest do
     query = Schema |> select([], fragment(title: 2))
 
     assert_raise Ecto.QueryError, fn ->
-     parse(query)
+      parse(query)
     end
   end
 

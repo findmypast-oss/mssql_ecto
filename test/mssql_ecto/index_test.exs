@@ -25,9 +25,7 @@ defmodule MssqlEcto.IndexTest do
                ~s|CREATE INDEX "posts_category_id_permalink_index" ON "foo"."posts" ("category_id", "permalink")|
              ]
 
-    create =
-      {:create,
-       index(:posts, ["lower(permalink)"], name: "posts$main", prefix: :foo)}
+    create = {:create, index(:posts, ["lower(permalink)"], name: "posts$main", prefix: :foo)}
 
     assert execute_ddl(create) ==
              [~s|CREATE INDEX "posts$main" ON "foo"."posts" (lower(permalink))|]
@@ -60,17 +58,14 @@ defmodule MssqlEcto.IndexTest do
   end
 
   test "create unique index with condition" do
-    create =
-      {:create,
-       index(:posts, [:permalink], unique: true, where: "public IS TRUE")}
+    create = {:create, index(:posts, [:permalink], unique: true, where: "public IS TRUE")}
 
     assert execute_ddl(create) ==
              [
                ~s|CREATE UNIQUE INDEX "posts_permalink_index" ON "posts" ("permalink") WHERE public IS TRUE|
              ]
 
-    create =
-      {:create, index(:posts, [:permalink], unique: true, where: :public)}
+    create = {:create, index(:posts, [:permalink], unique: true, where: :public)}
 
     assert execute_ddl(create) ==
              [
