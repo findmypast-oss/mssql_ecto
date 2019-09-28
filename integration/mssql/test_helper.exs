@@ -84,9 +84,11 @@ defmodule Ecto.Integration.Case do
 end
 
 {:ok, _} = MssqlEcto.ensure_all_started(TestRepo.config(), :temporary)
+|> IO.inspect()
 
 # Load up the repository, start it, and run migrations
 _ = MssqlEcto.storage_down(TestRepo.config())
+|> IO.inspect()
 :ok = MssqlEcto.storage_up(TestRepo.config())
 
 {:ok, _pid} = TestRepo.start_link()

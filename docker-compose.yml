@@ -18,6 +18,8 @@ services:
       - MSSQL_PRT=1433
       - MSSQL_DVR={ODBC Driver 17 for SQL Server}
       - TRAVIS_JOB_ID=$TRAVIS_JOB_ID
+    depends_on:
+      - sql_server
     volumes:
       - .:/usr/src/app/
       - /usr/src/app/deps
