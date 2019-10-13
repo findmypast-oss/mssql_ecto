@@ -1,4 +1,5 @@
 defmodule MssqlEcto do
+  @moduledoc false
   # Inherit all behaviour from Ecto.Adapters.SQL
   use Ecto.Adapters.SQL,
     driver: :mssqlex,

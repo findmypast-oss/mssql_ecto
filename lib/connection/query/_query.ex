@@ -1,4 +1,6 @@
 defmodule MssqlEcto.Connection.Query do
+  @moduledoc false
+
   alias Ecto.Query
   alias Query.{BooleanExpr, JoinExpr, QueryExpr}
   alias MssqlEcto.Connection.Query.Expression

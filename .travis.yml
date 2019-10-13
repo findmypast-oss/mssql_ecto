@@ -3,6 +3,8 @@ sudo: required
 language: elixir
 elixir:
   - 1.8
+otp_release: 
+  - 20.0
 
 services:
   - docker

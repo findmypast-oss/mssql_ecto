@@ -1,4 +1,6 @@
 defmodule MssqlEcto.Connection.Query.Expression do
+  @moduledoc false
+
   alias MssqlEcto.Connection.Query
   import MssqlEcto.Connection.Helper
 

@@ -1,4 +1,5 @@
 defmodule MssqlEcto.Connection.DDL do
+  @moduledoc false
   alias Ecto.Migration.{Table, Index, Reference, Constraint}
   import MssqlEcto.Connection.Helper
 

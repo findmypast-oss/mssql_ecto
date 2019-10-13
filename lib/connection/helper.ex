@@ -1,4 +1,6 @@
 defmodule MssqlEcto.Connection.Helper do
+  @moduledoc false
+
   alias MssqlEcto.Connection.Query.Expression
   require Logger
 
