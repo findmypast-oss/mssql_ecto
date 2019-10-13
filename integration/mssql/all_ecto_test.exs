@@ -30,8 +30,6 @@ most tests pass. Needs investigation
 > Code.require_file("repo.exs", ecto)
 most tests pass. Needs investigation
 
-*
-
 # Needs investigation
 
 > Code.require_file("type.exs", ecto)
