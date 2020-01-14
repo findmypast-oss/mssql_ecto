@@ -1,4 +1,4 @@
-FROM elixir:1.6.5-slim
+FROM elixir:1.8.2-slim
 
 ENV DEBIAN_FRONTEND noninteractive
 
@@ -19,7 +19,7 @@ ENV LC_ALL en_US.UTF-8
 # --- MSSQL ODBC INSTALL ---
 
 RUN apt-get update && \
-    apt-get -y install curl apt-transport-https gnupg2 && \
+    apt-get -y install git curl apt-transport-https gnupg2 && \
     curl https://packages.microsoft.com/keys/microsoft.asc | apt-key add - && \
     curl https://packages.microsoft.com/config/debian/9/prod.list > /etc/apt/sources.list.d/mssql-release.list && \
     apt-get update && \
@@ -36,4 +36,4 @@ RUN mix do deps.get, deps.compile
 
 # --- Be able to run wait for it script ---
 
-RUN chmod +x /usr/src/app/wait-for-it.sh
+RUN chmod +x /usr/src/app/bash_scripts/wait-for-it.sh

@@ -1,12 +1,12 @@
 defmodule MssqlEcto.Mixfile do
   use Mix.Project
 
-  def project do
+  def project() do
     [
       app: :mssql_ecto,
-      version: "1.2.0",
+      version: "2.0.0-beta.0",
       description: "Ecto Adapter for Microsoft SQL Server. Using Mssqlex.",
-      elixir: "~> 1.6",
+      elixir: "~> 1.8",
       build_embedded: Mix.env() == :prod,
       start_permanent: Mix.env() == :prod,
       deps: deps(),
@@ -25,21 +25,33 @@ defmodule MssqlEcto.Mixfile do
     ]
   end
 
-  def application do
+  def application() do
     [extra_applications: [:logger]]
   end
 
-  defp deps do
+  defp deps() do
     [
-      {:mssqlex, "~> 1.1.0"},
-      {:ecto, "~> 2.2.0"},
-      {:ex_doc, "~> 0.15", only: :dev, runtime: false},
+      mssqlex_path(),
+      {:ecto_sql, "~> 3.2"},
+      {:db_connection, "~> 2.1"},
+
+      # tooling
+      {:ex_doc, "~> 0.19", only: :dev, runtime: false},
+      {:dialyxir, "~> 1.0.0-rc.6", only: [:dev], runtime: false},
       {:excoveralls, "~> 0.6", only: :test},
       {:inch_ex, "~> 0.5", only: :docs}
     ]
   end
 
-  defp package do
+  defp mssqlex_path() do
+    if path = System.get_env("MSSQLEX_PATH") do
+      {:mssqlex, path: path}
+    else
+      {:mssqlex, "2.0.0-beta.0"}
+    end
+  end
+
+  defp package() do
     [
       name: :mssql_ecto,
       files: ["lib", "mix.exs", "README.md", "LICENSE"],

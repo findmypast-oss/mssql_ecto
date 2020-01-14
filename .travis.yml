@@ -2,15 +2,18 @@ sudo: required
 
 language: elixir
 elixir:
-  - 1.6.5
+  - 1.8
+otp_release: 
+  - 20.0
 
 services:
   - docker
 
 install:
-  - docker-compose build
+  - docker-compose build mssql_ecto
 
 script:
+  - docker-compose run mssql_ecto mix format --check-formatted
   - docker-compose run mssql_ecto mix compile --warnings-as-errors
   - docker-compose run mssql_ecto mix coveralls.travis
 

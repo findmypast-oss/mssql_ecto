@@ -5,7 +5,7 @@
 [![Inline docs](http://inch-ci.org/github/findmypast-oss/mssql_ecto.svg?branch=master)](http://inch-ci.org/github/findmypast-oss/mssql_ecto)
 [![Ebert](https://ebertapp.io/github/findmypast-oss/mssql_ecto.svg)](https://ebertapp.io/github/findmypast-oss/mssql_ecto)
 [![Hex.pm](https://img.shields.io/hexpm/v/mssql_ecto.svg)](https://hex.pm/packages/mssql_ecto)
-[![LICENSE](https://img.shields.io/hexpm/l/mssql_ecto.svg)](https://github.com/findmypast-oss/mssql_ecto/blob/master/LICENSE)
+[![LICENSE](https://img.shields.io/hexpm/l/mssql_ecto.svg)](https://github.com/findmypast-oss/mssql_ecto/blob/master/docs/LICENSE)
 
 [Ecto](https://github.com/elixir-ecto/ecto) Adapter for
 [Mssqlex](https://github.com/findmypast-oss/mssqlex)
@@ -29,52 +29,13 @@ or
 [other platforms](https://docs.microsoft.com/en-us/sql/connect/odbc/microsoft-odbc-driver-for-sql-server)
 on the official site.
 
-### Hex
+### Mix
 
-#### With [Application Inference](https://elixir-lang.org/blog/2017/01/05/elixir-v1-4-0-released/#application-inference)
-
-If you are using
-[application inference](https://elixir-lang.org/blog/2017/01/05/elixir-v1-4-0-released/#application-inference),
-i.e. `application` in your `mix.exs` looks something like this:
-
-```elixir
-def application do
-  [extra_applications: [:logger]]
-end
-```
-
-Note, the lack of `:applications` key. Then, you just need to add the following
-dependencies:
+Add the following to your mix file:
 
 ```elixir
 def deps do
-  [{:mssql_ecto, "~> 1.2.0"},
-   {:mssqlex, "~> 1.1.0"}]
-end
-```
-
-#### Without [Application Inference](https://elixir-lang.org/blog/2017/01/05/elixir-v1-4-0-released/#application-inference)
-
-If you are explicitly calling out all running applications under `application`
-in your `mix.exs`, i.e. it looks something like this:
-
-```elixir
-def application do
-  [applications: [:logger, :plug, :postgrex]]
-end
-```
-
-Then, you need to add `mssql_ecto` and `mssqlex` to both your `deps` and list of
-running applications:
-
-```elixir
-def application do
-  [applications: [:logger, :plug, :mssqlex, :mssql_ecto]]
-end
-
-def deps do
-  [{:mssql_ecto, "~> 1.2.0"},
-   {:mssqlex, "~> 1.1.0"}]
+  [{:mssql_ecto, "~> 2.0.0-beta.0"}]
 end
 ```
 
@@ -97,30 +58,32 @@ config :my_app, MyApp.Repo,
 
 An example project using mssql_ecto with Docker has kindly been created by
 [Chase Pursłey](https://github.com/cpursley). It can be viewed
-[here](https://github.com/cpursley/mssql_ecto_friends).
+[here](https://github.com/whossname/mssql_ecto_friends).
 
 ## Type Mappings
 
-|    Ecto Type    |   SQL Server Type    |                                                                       Caveats                                                                        |
-| :-------------: | :------------------: | :--------------------------------------------------------------------------------------------------------------------------------------------------: |
-|       :id       |         int          |                                                                                                                                                      |
-|     :serial     |  int identity(1, 1)  |                                                                                                                                                      |
-|   :bigserial    | bigint identity(1,1) | When a query is returning this value with the `returning` syntax and no schema is used, it will be returned as a string rather than an integer value |
-|   :binary_id    |       char(36)       |                                                                                                                                                      |
-|      :uuid      |       char(36)       |                                                                                                                                                      |
-|     :string     |       nvarchar       |                                                                                                                                                      |
-|     :binary     |    nvarchar(4000)    |                                                         Limited size, not fully implemented                                                          |
-|    :integer     |         int          |                                                                                                                                                      |
-|    :boolean     |         bit          |                                                                                                                                                      |
-| {:array, type}  |     list of type     |                                                                    Not Supported                                                                     |
-|      :map       |    nvarchar(4000)    |                                                                    Not Supported                                                                     |
-|   {:map, \_}    |    nvarchar(4000)    |                                                                    Not Supported                                                                     |
-|      :date      |         date         |                                                                                                                                                      |
-|      :time      |         time         |                                                               Can write but can't read                                                               |
-|  :utc_datetime  |      datetime2       |                                                                                                                                                      |
-| :naive_datetime |      datetime2       |                                                                                                                                                      |
-|     :float      |        float         |                                                                                                                                                      |
-|    :decimal     |       decimal        |                                                                                                                                                      |
+### Needs testing/validation
+
+|    Ecto Type    |   SQL Server Type    |               Caveats               |
+| :-------------: | :------------------: | :---------------------------------: |
+|       :id       |         int          |                                     |
+|     :serial     |  int identity(1, 1)  |                                     |
+|   :bigserial    | bigint identity(1,1) |                                     |
+|   :binary_id    |       char(36)       |                                     |
+|      :uuid      |       char(36)       |                                     |
+|     :string     |       nvarchar       |                                     |
+|     :binary     |    nvarchar(4000)    | Limited size, not fully implemented |
+|    :integer     |         int          |                                     |
+|    :boolean     |         bit          |                                     |
+| {:array, type}  |     list of type     |            Not Supported            |
+|      :map       |    nvarchar(4000)    |            Not Supported            |
+|   {:map, \_}    |    nvarchar(4000)    |            Not Supported            |
+|      :date      |         date         |                                     |
+|      :time      |         time         |      Can write but can't read       |
+|  :utc_datetime  |      datetime2       |                                     |
+| :naive_datetime |      datetime2       |                                     |
+|     :float      |        float         |                                     |
+|    :decimal     |       decimal        |                                     |
 
 ## Features not yet implemented
 
@@ -129,11 +92,15 @@ An example project using mssql_ecto with Docker has kindly been created by
 - On conflict
 - Upserts
 
+## Known Issues
+
+See the the list of [known issues](https://github.com/findmypast-oss/mssqlex#known-issues).
+
 ## Contributing
 
-### Integration Test Setup
+### Test Setup
 
-Running the integration tests requires an instance of SQL Server running on
+Running the tests requires an instance of SQL Server running on
 `localhost` and certain configuration variables set as environment variables:
 
 - MSSQL_DVR should be set to the ODBC driver to be used. Usually
@@ -145,8 +112,11 @@ Running the integration tests requires an instance of SQL Server running on
 
 The tests will create a database named `mssql_ecto_integration_test`
 
+The script `/bash_scripts/setup_test_db.sh` starts a docker image that holds
+the test database.
+
 ### Code of Conduct
 
 This project had a
-[Code of Conduct](https://github.com/findmypast-oss/mssql_ecto/blob/master/CODE_OF_CONDUCT.md)
+[Code of Conduct](https://github.com/findmypast-oss/mssql_ecto/blob/master/docs/CODE_OF_CONDUCT.md)
 if you wish to contribute to this project, please abide by its rules.

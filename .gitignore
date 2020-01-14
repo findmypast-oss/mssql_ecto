@@ -135,3 +135,4 @@ $RECYCLE.BIN/
 
 
 # End of https://www.gitignore.io/api/vim,linux,emacs,elixir,windows,visualstudiocode
+tmp
