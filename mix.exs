@@ -31,7 +31,7 @@ defmodule MssqlEcto.Mixfile do
 
   defp deps() do
     [
-      {:mssqlex, "2.0.0-beta.0"},
+      mssqlex_path(),
       {:ecto_sql, "~> 3.2"},
       {:db_connection, "~> 2.1"},
 
@@ -41,6 +41,14 @@ defmodule MssqlEcto.Mixfile do
       {:excoveralls, "~> 0.6", only: :test},
       {:inch_ex, "~> 0.5", only: :docs}
     ]
+  end
+
+  defp mssqlex_path() do
+    if path = System.get_env("MSSQLEX_PATH") do
+      {:mssqlex, path: path}
+    else
+      {:mssqlex, "2.0.0-beta.0"}
+    end
   end
 
   defp package() do
